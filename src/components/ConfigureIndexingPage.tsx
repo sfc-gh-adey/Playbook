@@ -114,42 +114,7 @@ export default function ConfigureIndexingPage({ data, onUpdate }: Props) {
           </p>
         </div>
 
-        {/* Configuration Preview */}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-          <h4 className="text-lg font-medium text-gray-900 mb-4">Configuration Summary</h4>
-          
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <h5 className="text-sm font-medium text-gray-700 mb-2">Service Details</h5>
-              <div className="space-y-1 text-sm text-gray-600">
-                <div><span className="font-medium">Name:</span> {data.serviceName}</div>
-                <div><span className="font-medium">Database:</span> {data.database}</div>
-                <div><span className="font-medium">Source:</span> {data.stagePath}</div>
-              </div>
-            </div>
-            
-            <div>
-              <h5 className="text-sm font-medium text-gray-700 mb-2">Configuration</h5>
-              <div className="space-y-1 text-sm text-gray-600">
-                <div><span className="font-medium">Target Lag:</span> {data.targetLag}</div>
-                <div><span className="font-medium">Embedding:</span> {data.embeddingModel}</div>
-                <div><span className="font-medium">Warehouse:</span> {data.indexingWarehouse || 'Not selected'}</div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <h5 className="text-sm font-medium text-gray-700 mb-2">Processing Mode</h5>
-            <div className="text-sm text-gray-600">
-              <span className="font-medium">PDF Processing:</span> {data.textExtractionMode?.toUpperCase()} mode
-              {data.textExtractionMode === 'layout' && ' (preserves structure and layout)'}
-              {data.textExtractionMode === 'ocr' && ' (text extraction only)'}
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              <span className="font-medium">Metadata Fields:</span> {(data.includeMetadata || []).length} selected
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
   );

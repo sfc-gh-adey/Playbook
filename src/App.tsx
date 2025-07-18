@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import NewServicePage from './components/NewServicePage';
 import SelectDataPage from './components/SelectDataPage';
-import ConfigurePDFPage from './components/ConfigurePDFPage';
+import ChooseProcessingPipelinePage from './components/ChooseProcessingPipelinePage';
 import SelectSearchColumnPage from './components/SelectSearchColumnPage';
 import SelectMetadataPage from './components/SelectMetadataPage';
 import ConfigureIndexingPage from './components/ConfigureIndexingPage';
-import ReviewPage from './components/ReviewPage';
+import ServiceLandingPage from './components/ServiceLandingPage';
 import './App.css';
 
 export interface WizardData {
@@ -22,8 +22,10 @@ export interface WizardData {
   selectedFiles: string[];
   enableIncrementalUpdates: boolean;
   
-  // Step 3: Configure PDF processing
-  textExtractionMode: 'layout' | 'ocr' | null;
+  // Step 3: Choose processing pipeline
+  pipelineType: 'visual' | 'text' | null;
+  advancedDualVector: boolean;
+  advancedHeadingChunk: boolean;
   
   // Step 4: Select metadata
   includeMetadata: string[];
@@ -37,6 +39,8 @@ export interface WizardData {
 function App() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isOpen, setIsOpen] = useState(true);
+  const [showServicePage, setShowServicePage] = useState(false);
+  const [createdServiceData, setCreatedServiceData] = useState<any>(null);
   const [wizardData, setWizardData] = useState<WizardData>({
     serviceName: '',
     database: 'ADEY_TEST_DB.TEST',
@@ -47,7 +51,9 @@ function App() {
     selectedTable: '',
     selectedFiles: [],
     enableIncrementalUpdates: false,
-    textExtractionMode: null,
+    pipelineType: null,
+    advancedDualVector: false,
+    advancedHeadingChunk: false,
     includeMetadata: [],
     targetLag: '1 hour',
     embeddingModel: 'snowflake-arctic-embed-m-v1.5',
@@ -67,8 +73,8 @@ function App() {
     { number: 2, id: 'select-data', title: 'Select data', completed: currentStep > 2 },
     { 
       number: 3, 
-      id: wizardData.dataSourceType === 'stage' ? 'configure-pdf' : 'select-search-column', 
-      title: wizardData.dataSourceType === 'stage' ? 'Configure PDF' : 'Select search column', 
+      id: wizardData.dataSourceType === 'stage' ? 'choose-pipeline' : 'select-search-column', 
+      title: wizardData.dataSourceType === 'stage' ? 'Choose Processing Pipeline' : 'Select search column', 
       completed: currentStep > 3 
     },
     { 
@@ -95,13 +101,13 @@ function App() {
             ? !!wizardData.selectedTable 
             : false,
           nextLabel: wizardData.dataSourceType === 'stage' 
-            ? 'Next: Configure PDF' 
+            ? 'Next: Choose Processing Pipeline' 
             : 'Next: Select search column'
         };
       case 3:
         return {
           canGoNext: wizardData.dataSourceType === 'stage' 
-            ? !!wizardData.textExtractionMode 
+            ? !!wizardData.pipelineType 
             : true, // Table flow doesn't need additional validation on this step
           nextLabel: wizardData.dataSourceType === 'stage' 
             ? 'Next: Select metadata' 
@@ -123,6 +129,39 @@ function App() {
   };
 
   const { canGoNext, nextLabel } = getCurrentStepData();
+
+  // Show service landing page after creation
+  if (showServicePage && createdServiceData) {
+    return (
+      <ServiceLandingPage
+        serviceData={createdServiceData}
+        onClose={() => {
+          setShowServicePage(false);
+          setCreatedServiceData(null);
+          // Reset form
+          setCurrentStep(1);
+          setWizardData({
+            serviceName: '',
+            database: 'ADEY_TEST_DB.TEST',
+            schema: 'TEST',
+            warehouse: '',
+            dataSourceType: null,
+            stagePath: '',
+            selectedTable: '',
+            selectedFiles: [],
+            enableIncrementalUpdates: false,
+            pipelineType: null,
+            advancedDualVector: false,
+            advancedHeadingChunk: false,
+            includeMetadata: [],
+            targetLag: '1 hour',
+            embeddingModel: 'snowflake-arctic-embed-m-v1.5',
+            indexingWarehouse: ''
+          });
+        }}
+      />
+    );
+  }
 
   if (!isOpen) {
     return (
@@ -204,7 +243,7 @@ function App() {
               />
             )}
             {currentStep === 3 && wizardData.dataSourceType === 'stage' && (
-              <ConfigurePDFPage
+              <ChooseProcessingPipelinePage
                 data={wizardData}
                 onUpdate={updateWizardData}
               />
@@ -225,34 +264,6 @@ function App() {
               <ConfigureIndexingPage
                 data={wizardData}
                 onUpdate={updateWizardData}
-              />
-            )}
-            {currentStep === 6 && (
-              <ReviewPage
-                data={wizardData}
-                onBack={() => goToStep(5)}
-                onComplete={() => {
-                  alert('Cortex Search service created successfully!');
-                  setIsOpen(false);
-                  // Reset form
-                  setCurrentStep(1);
-                  setWizardData({
-                    serviceName: '',
-                    database: '',
-                    schema: '',
-                    warehouse: '',
-                    dataSourceType: null,
-                    stagePath: '',
-                    selectedTable: '',
-                    selectedFiles: [],
-                    enableIncrementalUpdates: false,
-                    textExtractionMode: null,
-                    includeMetadata: [],
-                    targetLag: '1 hour',
-                    embeddingModel: 'snowflake-arctic-embed-m-v1.5',
-                    indexingWarehouse: ''
-                  });
-                }}
               />
             )}
           </div>
@@ -282,7 +293,19 @@ function App() {
                     goToStep(currentStep + 1);
                   } else {
                     // Final step - create service
-                    goToStep(6);
+                    setCreatedServiceData({
+                      serviceName: wizardData.serviceName,
+                      database: wizardData.database,
+                      schema: wizardData.schema,
+                      warehouse: wizardData.warehouse,
+                      stagePath: wizardData.stagePath,
+                      pipelineType: wizardData.pipelineType,
+                      targetLag: wizardData.targetLag,
+                      embeddingModel: wizardData.embeddingModel,
+                      metadataCount: wizardData.includeMetadata.length
+                    });
+                    setShowServicePage(true);
+                    setIsOpen(false);
                   }
                 }}
                 disabled={!canGoNext}
