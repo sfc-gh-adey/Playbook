@@ -151,12 +151,16 @@ npm run create-prototype # Generate new prototype
 
 This repository currently contains a **Cortex Search PDF Wizard** prototype featuring:
 
-- ✅ 5-step wizard flow (New Service → Configure Indexing)
-- ✅ Two document processing pipelines (Visual vs. Text)
-- ✅ Metadata table with automatic column inclusion
-- ✅ Service landing page with INITIALIZING status
-- ✅ Horizontal carousel file browser
-- ✅ voyage-multimodal-3 and arctic-embed integration
+- ✅ **Unified Wizard**: A single wizard that handles two distinct flows: creating a service from a **Snowflake Table** or from **PDFs in a Stage**.
+- ✅ **Table-Based Search Flow**:
+  - Multi-select search columns with interactive data preview.
+  - Per-column `Text` vs. `Vector` indexing selection.
+  - Separate steps for selecting filterable `Attributes` and `Return Columns`.
+- ✅ **Stage-Based (PDF) Search Flow**:
+  - Two distinct document processing pipelines: **Visual & Complex** and **Text-Heavy**.
+  - **Automated Table Generation**: For the 'Visual & Complex' flow, the wizard now includes a confirmation step that shows the user the powerful, structured table schema (`TEXT`, `VECTOR_MAIN`, etc.) that will be automatically created on their behalf.
+  - **Custom Table Destination**: Users can now specify a custom Database and Schema for this newly generated table.
+- ✅ **Consistent UI**: All screens are built on our reusable component foundation for a consistent Snowflake look and feel.
 
 ## 🚀 Future Enhancements
 

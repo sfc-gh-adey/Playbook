@@ -160,6 +160,7 @@ export default function SelectSearchColumnPage({ data, onUpdate }: Props) {
             <div className="text-xs text-gray-600 space-y-2">
               <p><strong>Text Index:</strong> Ideal for exact or keyword matches. Use this for fields like product codes, names, or categories where users will search for specific terms.</p>
               <p><strong>Vector Index:</strong> Ideal for semantic, meaning-based search. Use this for fields with longer text like descriptions or reviews, where users might search for concepts or ideas.</p>
+              <p><strong>Hybrid (Both):</strong> The most powerful option. Use for critical fields where you need both keyword precision and semantic understanding (e.g., product titles).</p>
             </div>
           </div>
         </div>
@@ -168,7 +169,7 @@ export default function SelectSearchColumnPage({ data, onUpdate }: Props) {
       {/* Right Panel: Data Preview */}
       <div className="w-96">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Data preview</h2>
-        <div className="border border-gray-200 rounded-lg bg-white h-full">
+        <div className="border border-gray-200 rounded-lg bg-white h-[484px]">
           {previewColumn ? (
             <div className="flex flex-col h-full">
               <div className="p-4 border-b border-gray-200 flex-shrink-0">

@@ -8,6 +8,7 @@ import ConfigureIndexingPage from './components/ConfigureIndexingPage';
 import ServiceLandingPage from './components/ServiceLandingPage';
 import SelectAttributesPage from './components/SelectAttributesPage';
 import SelectReturnColumnsPage from './components/SelectReturnColumnsPage';
+import GeneratedSchemaPage from './components/GeneratedSchemaPage';
 import './App.css';
 
 export interface WizardData {
@@ -32,6 +33,10 @@ export interface WizardData {
 
   // Step 5 (Table Flow): Select columns to return
   returnColumns: string[];
+
+  // Step 4 (Stage Flow): Generated Table Destination
+  generatedTableDatabase: string;
+  generatedTableSchema: string;
 
   // Step 3 (Stage Flow): Choose processing pipeline
   pipelineType: 'visual' | 'text' | null;
@@ -71,7 +76,9 @@ function App() {
     includeMetadata: [],
     targetLag: '1 hour',
     embeddingModel: 'snowflake-arctic-embed-m-v1.5',
-    indexingWarehouse: ''
+    indexingWarehouse: '',
+    generatedTableDatabase: '',
+    generatedTableSchema: ''
   });
 
   const updateWizardData = (updates: Partial<WizardData>) => {
@@ -145,6 +152,10 @@ function App() {
             : 'Next: Select attributes'
         };
       case 4:
+        if (wizardData.dataSourceType === 'stage') {
+          // The schema page is read-only, so we can always proceed.
+          return { canGoNext: true, nextLabel: 'Next: Configure indexing' };
+        }
         return {
           canGoNext: wizardData.attributeColumns.length > 0,
           nextLabel: 'Next: Select columns'
@@ -201,7 +212,9 @@ function App() {
             includeMetadata: [],
             targetLag: '1 hour',
             embeddingModel: 'snowflake-arctic-embed-m-v1.5',
-            indexingWarehouse: ''
+            indexingWarehouse: '',
+            generatedTableDatabase: '',
+            generatedTableSchema: ''
           });
         }}
       />
@@ -311,7 +324,13 @@ function App() {
                 onUpdate={updateWizardData}
               />
             )}
-            {currentStep === 4 && wizardData.dataSourceType === 'stage' && (
+            {currentStep === 4 && wizardData.dataSourceType === 'stage' && wizardData.pipelineType === 'visual' && (
+              <GeneratedSchemaPage
+                data={wizardData}
+                onUpdate={updateWizardData}
+              />
+            )}
+            {currentStep === 4 && wizardData.dataSourceType === 'stage' && wizardData.pipelineType === 'text' && (
               <SelectMetadataPage
                 data={wizardData}
                 onUpdate={updateWizardData}

@@ -63,7 +63,7 @@ export default function SelectMetadataPage({ data, onUpdate }: Props) {
   // Auto-include all metadata columns - no user selection needed
   React.useEffect(() => {
     onUpdate({ includeMetadata: metadataColumns.map(col => col.name.toLowerCase()) });
-  }, [onUpdate]);
+  }, []);
 
   return (
     <div className="max-w-4xl">
