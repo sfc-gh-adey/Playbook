@@ -6,6 +6,8 @@ import SelectSearchColumnPage from './components/SelectSearchColumnPage';
 import SelectMetadataPage from './components/SelectMetadataPage';
 import ConfigureIndexingPage from './components/ConfigureIndexingPage';
 import ServiceLandingPage from './components/ServiceLandingPage';
+import SelectAttributesPage from './components/SelectAttributesPage';
+import SelectReturnColumnsPage from './components/SelectReturnColumnsPage';
 import './App.css';
 
 export interface WizardData {
@@ -22,7 +24,16 @@ export interface WizardData {
   selectedFiles: string[];
   enableIncrementalUpdates: boolean;
   
-  // Step 3: Choose processing pipeline
+  // Step 3 (Table Flow): Select search columns
+  searchColumns: { name: string; isText: boolean; isVector: boolean; }[];
+
+  // Step 4 (Table Flow): Select attribute columns
+  attributeColumns: string[];
+
+  // Step 5 (Table Flow): Select columns to return
+  returnColumns: string[];
+
+  // Step 3 (Stage Flow): Choose processing pipeline
   pipelineType: 'visual' | 'text' | null;
   advancedDualVector: boolean;
   advancedHeadingChunk: boolean;
@@ -51,6 +62,9 @@ function App() {
     selectedTable: '',
     selectedFiles: [],
     enableIncrementalUpdates: false,
+    searchColumns: [],
+    attributeColumns: [],
+    returnColumns: [],
     pipelineType: null,
     advancedDualVector: false,
     advancedHeadingChunk: false,
@@ -83,7 +97,18 @@ function App() {
       title: wizardData.dataSourceType === 'stage' ? 'Select metadata' : 'Select attributes', 
       completed: currentStep > 4 
     },
-    { number: 5, id: 'configure-indexing', title: 'Configure indexing', completed: currentStep > 5 },
+    {
+      number: 5,
+      id: wizardData.dataSourceType === 'table' ? 'select-return-columns' : 'configure-indexing',
+      title: wizardData.dataSourceType === 'table' ? 'Select columns' : 'Configure indexing',
+      completed: currentStep > 5
+    },
+    { 
+      number: 6, 
+      id: 'configure-indexing', 
+      title: 'Configure indexing', 
+      completed: currentStep > 6 
+    },
   ];
 
   const getCurrentStepData = () => {
@@ -105,6 +130,12 @@ function App() {
             : 'Next: Select search column'
         };
       case 3:
+        if (wizardData.dataSourceType === 'table') {
+          return {
+            canGoNext: wizardData.searchColumns.length > 0,
+            nextLabel: 'Next: Select attributes'
+          }
+        }
         return {
           canGoNext: wizardData.dataSourceType === 'stage' 
             ? !!wizardData.pipelineType 
@@ -115,10 +146,21 @@ function App() {
         };
       case 4:
         return {
-          canGoNext: true,
-          nextLabel: 'Next: Configure indexing'
+          canGoNext: wizardData.attributeColumns.length > 0,
+          nextLabel: 'Next: Select columns'
         };
       case 5:
+        if (wizardData.dataSourceType === 'table') {
+          return {
+            canGoNext: wizardData.returnColumns.length > 0,
+            nextLabel: 'Next: Configure indexing'
+          }
+        }
+        return {
+          canGoNext: !!(wizardData.targetLag && wizardData.embeddingModel && wizardData.indexingWarehouse),
+          nextLabel: 'Create Search Service'
+        };
+      case 6:
         return {
           canGoNext: !!(wizardData.targetLag && wizardData.embeddingModel && wizardData.indexingWarehouse),
           nextLabel: 'Create Search Service'
@@ -150,6 +192,9 @@ function App() {
             selectedTable: '',
             selectedFiles: [],
             enableIncrementalUpdates: false,
+            searchColumns: [],
+            attributeColumns: [],
+            returnColumns: [],
             pipelineType: null,
             advancedDualVector: false,
             advancedHeadingChunk: false,
@@ -228,7 +273,7 @@ function App() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 p-8 overflow-y-auto">
             {currentStep === 1 && (
               <NewServicePage
@@ -254,13 +299,25 @@ function App() {
                 onUpdate={updateWizardData}
               />
             )}
-            {currentStep === 4 && (
+            {currentStep === 4 && wizardData.dataSourceType === 'table' && (
+              <SelectAttributesPage
+                data={wizardData}
+                onUpdate={updateWizardData}
+              />
+            )}
+            {currentStep === 5 && wizardData.dataSourceType === 'table' && (
+              <SelectReturnColumnsPage
+                data={wizardData}
+                onUpdate={updateWizardData}
+              />
+            )}
+            {currentStep === 4 && wizardData.dataSourceType === 'stage' && (
               <SelectMetadataPage
                 data={wizardData}
                 onUpdate={updateWizardData}
               />
             )}
-            {currentStep === 5 && (
+            {currentStep === 5 && wizardData.dataSourceType === 'stage' && (
               <ConfigureIndexingPage
                 data={wizardData}
                 onUpdate={updateWizardData}
@@ -289,7 +346,8 @@ function App() {
               
               <button
                 onClick={() => {
-                  if (currentStep < 5) {
+                  const finalStep = wizardData.dataSourceType === 'table' ? 6 : 5;
+                  if (currentStep < finalStep) {
                     goToStep(currentStep + 1);
                   } else {
                     // Final step - create service
