@@ -324,14 +324,8 @@ function App() {
                 onUpdate={updateWizardData}
               />
             )}
-            {currentStep === 4 && wizardData.dataSourceType === 'stage' && wizardData.pipelineType === 'visual' && (
+            {currentStep === 4 && wizardData.dataSourceType === 'stage' && (wizardData.pipelineType === 'visual' || wizardData.pipelineType === 'text') && (
               <GeneratedSchemaPage
-                data={wizardData}
-                onUpdate={updateWizardData}
-              />
-            )}
-            {currentStep === 4 && wizardData.dataSourceType === 'stage' && wizardData.pipelineType === 'text' && (
-              <SelectMetadataPage
                 data={wizardData}
                 onUpdate={updateWizardData}
               />
