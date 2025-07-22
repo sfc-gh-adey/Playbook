@@ -323,6 +323,12 @@ function App() {
                 onUpdate={updateWizardData}
               />
             )}
+            {currentStep === 6 && wizardData.dataSourceType === 'table' && (
+              <ConfigureIndexingPage
+                data={wizardData}
+                onUpdate={updateWizardData}
+              />
+            )}
           </div>
 
           {/* Bottom Navigation */}
