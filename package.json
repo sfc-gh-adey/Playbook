@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^7.7.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
@@ -29,10 +30,16 @@
     "typescript": "^5.2.2",
     "vite": "^5.0.8"
   },
-  "keywords": ["snowflake", "prototype", "react", "ui", "template"],
+  "keywords": [
+    "snowflake",
+    "prototype",
+    "react",
+    "ui",
+    "template"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/your-org/snowflake-prototype-base"
   },
   "template": true
-} 
+}

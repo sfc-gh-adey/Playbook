@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import NewServicePage from './components/NewServicePage';
 import SelectDataPage from './components/SelectDataPage';
 import ChooseProcessingPipelinePage from './components/ChooseProcessingPipelinePage';
 import SelectSearchColumnPage from './components/SelectSearchColumnPage';
-import SelectMetadataPage from './components/SelectMetadataPage';
+
 import ConfigureIndexingPage from './components/ConfigureIndexingPage';
 import ServiceLandingPage from './components/ServiceLandingPage';
 import SelectAttributesPage from './components/SelectAttributesPage';
 import SelectReturnColumnsPage from './components/SelectReturnColumnsPage';
 import GeneratedSchemaPage from './components/GeneratedSchemaPage';
+import PlaygroundPage from './components/PlaygroundPage';
 import './App.css';
 
 export interface WizardData {
@@ -52,34 +54,46 @@ export interface WizardData {
   indexingWarehouse: string;
 }
 
+const initialWizardData: WizardData = {
+  serviceName: 'My Search Service',
+  database: 'ADEY_TEST_DB.TEST',
+  schema: 'TEST',
+  warehouse: '',
+  dataSourceType: null,
+  stagePath: '',
+  selectedTable: '',
+  selectedFiles: [],
+  enableIncrementalUpdates: false,
+  searchColumns: [],
+  attributeColumns: [],
+  returnColumns: [],
+  pipelineType: null,
+  advancedDualVector: false,
+  advancedHeadingChunk: false,
+  includeMetadata: [],
+  targetLag: '1 hour',
+  embeddingModel: 'snowflake-arctic-embed-m-v1.5',
+  indexingWarehouse: '',
+  generatedTableDatabase: '',
+  generatedTableSchema: ''
+};
+
 function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Wizard />} />
+      <Route path="/service/:serviceName" element={<ServiceLandingPage />} />
+      <Route path="/service/:serviceName/playground" element={<PlaygroundPage />} />
+    </Routes>
+  );
+}
+
+function Wizard() {
+  const [wizardData, setWizardData] = useState<WizardData>(initialWizardData);
   const [currentStep, setCurrentStep] = useState(1);
-  const [isOpen, setIsOpen] = useState(true);
-  const [showServicePage, setShowServicePage] = useState(false);
-  const [createdServiceData, setCreatedServiceData] = useState<any>(null);
-  const [wizardData, setWizardData] = useState<WizardData>({
-    serviceName: '',
-    database: 'ADEY_TEST_DB.TEST',
-    schema: 'TEST',
-    warehouse: '',
-    dataSourceType: null,
-    stagePath: '',
-    selectedTable: '',
-    selectedFiles: [],
-    enableIncrementalUpdates: false,
-    searchColumns: [],
-    attributeColumns: [],
-    returnColumns: [],
-    pipelineType: null,
-    advancedDualVector: false,
-    advancedHeadingChunk: false,
-    includeMetadata: [],
-    targetLag: '1 hour',
-    embeddingModel: 'snowflake-arctic-embed-m-v1.5',
-    indexingWarehouse: '',
-    generatedTableDatabase: '',
-    generatedTableSchema: ''
-  });
+  const navigate = useNavigate();
+
+
 
   const updateWizardData = (updates: Partial<WizardData>) => {
     setWizardData(prev => ({ ...prev, ...updates }));
@@ -183,56 +197,14 @@ function App() {
 
   const { canGoNext, nextLabel } = getCurrentStepData();
 
-  // Show service landing page after creation
-  if (showServicePage && createdServiceData) {
-    return (
-      <ServiceLandingPage
-        serviceData={createdServiceData}
-        onClose={() => {
-          setShowServicePage(false);
-          setCreatedServiceData(null);
-          // Reset form
-          setCurrentStep(1);
-          setWizardData({
-            serviceName: '',
-            database: 'ADEY_TEST_DB.TEST',
-            schema: 'TEST',
-            warehouse: '',
-            dataSourceType: null,
-            stagePath: '',
-            selectedTable: '',
-            selectedFiles: [],
-            enableIncrementalUpdates: false,
-            searchColumns: [],
-            attributeColumns: [],
-            returnColumns: [],
-            pipelineType: null,
-            advancedDualVector: false,
-            advancedHeadingChunk: false,
-            includeMetadata: [],
-            targetLag: '1 hour',
-            embeddingModel: 'snowflake-arctic-embed-m-v1.5',
-            indexingWarehouse: '',
-            generatedTableDatabase: '',
-            generatedTableSchema: ''
-          });
-        }}
-      />
-    );
-  }
+  const handleCreateService = () => {
+    // Here you would typically make an API call to create the service
+    console.log('Creating service with data:', wizardData);
+    const serviceName = wizardData.serviceName || 'new-service';
+    navigate(`/service/${encodeURIComponent(serviceName)}`);
+  };
 
-  if (!isOpen) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700"
-        >
-          Create Cortex Search Service
-        </button>
-      </div>
-    );
-  }
+  const totalSteps = wizardData.dataSourceType === 'table' ? 6 : 5;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -347,7 +319,7 @@ function App() {
           {/* Bottom Navigation */}
           <div className="border-t border-gray-200 px-8 py-4 flex justify-between items-center bg-gray-50">
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={() => navigate(-1)}
               className="text-gray-700 hover:text-gray-900 font-medium"
             >
               Cancel
@@ -369,24 +341,11 @@ function App() {
                   if (currentStep < finalStep) {
                     goToStep(currentStep + 1);
                   } else {
-                    // Final step - create service
-                    setCreatedServiceData({
-                      serviceName: wizardData.serviceName,
-                      database: wizardData.database,
-                      schema: wizardData.schema,
-                      warehouse: wizardData.warehouse,
-                      stagePath: wizardData.stagePath,
-                      pipelineType: wizardData.pipelineType,
-                      targetLag: wizardData.targetLag,
-                      embeddingModel: wizardData.embeddingModel,
-                      metadataCount: wizardData.includeMetadata.length
-                    });
-                    setShowServicePage(true);
-                    setIsOpen(false);
+                    handleCreateService();
                   }
                 }}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={!canGoNext}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 {nextLabel}
               </button>
