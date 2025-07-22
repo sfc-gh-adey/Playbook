@@ -1,14 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { mockApiSearch, fullMockData } from '../api/mockApi';
 
-// Mock search results data
-const mockResultsA = [
+interface SearchResult {
+  DOC_ID: string;
+  TITLE: string;
+  CONTENT: string;
+  CATEGORY: string;
+  PRICE: number | null;
+  RATING: number | null;
+  DATE: string;
+  REGION: string;
+  AGENT_ID: string | null;
+  SCORE: number;
+  source_type: 'Table' | 'PDF';
+  score_components: { [key: string]: number };
+  SOURCE_FILENAME?: string;
+  PAGE_NUMBER?: number;
+}
+
+const mockResultsA: SearchResult[] = [
   {
-    rank: 1,
-    TRANSCRIPT_TEXT: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam vestibulum nisl vel quam sollicitudin, nec interdum arcu vehicula.",
-    DATE: "2025-03-20 19:11:30",
-    REGION: "San Mateo, CA",
+    DOC_ID: "dke9o01345",
+    TITLE: "Customer inquiry about pricing",
+    CONTENT: "The customer is asking about the pricing for our enterprise plan. They want to know the per-seat cost and any available discounts.",
+    CATEGORY: "Sales",
+    PRICE: 100,
+    RATING: 4.5,
+    DATE: "2024-05-20",
+    REGION: "US",
     AGENT_ID: "dke9o01345",
     SCORE: 0.92,
     source_type: 'Table',
@@ -19,8 +38,14 @@ const mockResultsA = [
     }
   },
   {
-    rank: 2,
-    TRANSCRIPT_TEXT: "Phasellus eget arcu eget lorem luctus porttitor. Etiam arcu nulla, cursus commodo lorem vel, viverra egestas nulla.",
+    DOC_ID: "ppa8b92134",
+    TITLE: "Billing issue escalation",
+    CONTENT: "A customer is reporting a double charge on their last invoice. We need to investigate and issue a refund if necessary.",
+    CATEGORY: "Billing",
+    PRICE: 50,
+    RATING: 2.8,
+    DATE: "2024-05-19",
+    REGION: "EU",
     AGENT_ID: "ppa8b92134",
     SCORE: 0.87,
     source_type: 'Table',
@@ -30,25 +55,20 @@ const mockResultsA = [
       'RATING (boost)': 0.07
     }
   },
-  {
-    rank: 3,
-    TRANSCRIPT_TEXT: "Nulla et convallis augue. Aliquam euismod posuere mauris. Suspendisse lobortis vitae enim vel vulputate.",
-    AGENT_ID: "jdoe12345",
-    SCORE: 0.82,
-    source_type: 'Table',
-    score_components: {
-      'CONTENT (text)': 0.6,
-      'TITLE (text)': 0.12,
-      'RATING (boost)': 0.1
-    }
-  }
 ];
 
-const mockResultsB = [
+const mockResultsB: SearchResult[] = [
   {
-    rank: 1,
-    TRANSCRIPT_TEXT: "Viverra egestas nulla. Nulla et convallis augue. Aliquam euismod posuere mauris. Suspendisse lobortis vitae enim vel vulputate.",
-    SOURCE_FILENAME: "Q2_Financials.pdf",
+    DOC_ID: "doc-xyz-789",
+    TITLE: "Financial_Report_Q1_2024.pdf",
+    CONTENT: "The company's net revenue increased by 15% year-over-year, driven by strong performance in the cloud services division.",
+    CATEGORY: "Finance",
+    PRICE: null,
+    RATING: null,
+    DATE: "2024-04-25",
+    REGION: "Global",
+    AGENT_ID: null,
+    SOURCE_FILENAME: "Financial_Report_Q1_2024.pdf",
     PAGE_NUMBER: 12,
     SCORE: 0.95,
     source_type: 'PDF',
@@ -59,28 +79,22 @@ const mockResultsB = [
     }
   },
   {
-    rank: 2,
-    TRANSCRIPT_TEXT: "Aliquam vestibulum nisl vel quam sollicitudin, nec interdum arcu vehicula. Phasellus eget arcu eget lorem luctus porttitor.",
-    SOURCE_FILENAME: "Internal_Memo.pdf",
+    DOC_ID: "doc-abc-123",
+    TITLE: "Marketing_Strategy_2025.pdf",
+    CONTENT: "Our new marketing campaign will focus on social media engagement and influencer partnerships to target a younger demographic.",
+    CATEGORY: "Marketing",
+    PRICE: null,
+    RATING: null,
+    DATE: "2024-05-10",
+    REGION: "Global",
+    AGENT_ID: null,
+    SOURCE_FILENAME: "Marketing_Strategy_2025.pdf",
     PAGE_NUMBER: 2,
     SCORE: 0.81,
     source_type: 'PDF',
     score_components: {
       'CONTENT (vector)': 0.7,
       'TITLE (text)': 0.05,
-      'freshness (decay)': 0.06
-    }
-  },
-  {
-    rank: 3,
-    TRANSCRIPT_TEXT: "Etiam arcu nulla, cursus commodo lorem vel. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    SOURCE_FILENAME: "Project_Proposal.pdf",
-    PAGE_NUMBER: 5,
-    SCORE: 0.76,
-    source_type: 'PDF',
-    score_components: {
-      'CONTENT (vector)': 0.6,
-      'TITLE (text)': 0.1,
       'freshness (decay)': 0.06
     }
   }
@@ -110,11 +124,14 @@ interface QueryPanelProps {
   setLimit: (limit: number) => void;
   selectedColumns: string[];
   setSelectedColumns: (columns: string[]) => void;
+  filters: Filter[];
+  setFilters: (filters: Filter[]) => void;
   logicalOperator: '@and' | '@or';
   setLogicalOperator: (operator: '@and' | '@or') => void;
 }
 
 interface Filter {
+  id: number;
   column: string;
   operator: string;
   value: string;
@@ -132,37 +149,44 @@ const PlaygroundPage = () => {
   
   // State for all configurable parameters
   const [limit, setLimit] = useState(10);
-  const [selectedColumns, setSelectedColumns] = useState(['CONTENT', 'DOC_ID', 'TITLE', 'CATEGORY', 'AUTHORS', 'PRICE', 'RATING']);
-  const [columnWeights, setColumnWeights] = useState<{ [key: string]: number }>({ 'CONTENT': 1, 'TITLE': 1, 'CATEGORY': 1 });
+  const [selectedColumns, setSelectedColumns] = useState(['TITLE', 'CONTENT']);
+  const [columnWeights, setColumnWeights] = useState<{ [key: string]: number }>({ CONTENT: 1, TITLE: 1 });
   const [techniqueBalance, setTechniqueBalance] = useState(50);
   const [logicalOperator, setLogicalOperator] = useState<'@and' | '@or'>('@and');
-  const [activeConfig, setActiveConfig] = useState('');
+  const [activeConfig, setActiveConfig] = useState('Default');
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [filters, setFilters] = useState<Filter[]>([
+    { id: 1, column: 'CATEGORY', operator: '@eq', value: 'Technology', negate: false }
+  ]);
   
   const handleSearch = async () => {
-    if (query.trim()) {
-      const params = { 
-        query, 
-        limit, 
-        selectedColumns,
-        columnWeights,
-        techniqueBalance
-      };
-      
-      const promises = comparisonServices.map(service => mockApiSearch(params, service));
-      const newResults = await Promise.all(promises);
-      setResults(newResults);
+    // This is now a simplified, local search simulation
+    const newResults = comparisonServices.map(service => {
+      let mockData = service === 'CHAT_CUSTOMER_TEST_CSS_B' ? mockResultsB : mockResultsA;
 
-    } else {
-      setResults(comparisonServices.map(() => []));
-    }
+      // Super simple query filter
+      if (query) {
+        mockData = mockData.filter(item =>
+          item.CONTENT.toLowerCase().includes(query.toLowerCase())
+        );
+      }
+      
+      const limitedResults = mockData.slice(0, limit);
+      return limitedResults.map((r, i) => ({ ...r, rank: i + 1 }));
+    });
+    setResults(newResults);
   };
+
+  useEffect(() => {
+    handleSearch();
+  }, [comparisonServices, limit]);
   
-  const renderResults = (results: any[], serviceTitle: string) => {
-    if (results.length === 0 && query.trim()) {
+  const renderResults = (serviceResults: any[], serviceName: string) => {
+    const serviceTitle = serviceName === 'CHAT_CUSTOMER_TEST_CSS_A' ? 'Customer Support Search' : 'Financial Document Search';
+    if (serviceResults.length === 0) {
       return <div className="p-4 text-center text-gray-500">No results for {serviceTitle}.</div>;
     }
-    return results.map(result => <ResultCard key={result.DOC_ID} result={result} columns={selectedColumns} onExplain={setExplainResult} />);
+    return serviceResults.map(result => <ResultCard key={result.DOC_ID} result={result} columns={selectedColumns} onExplain={setExplainResult} />);
   };
 
   const isCompareView = comparisonServices.length > 1;
@@ -275,6 +299,8 @@ const PlaygroundPage = () => {
                 setLimit={setLimit}
                 selectedColumns={selectedColumns}
                 setSelectedColumns={setSelectedColumns}
+                filters={filters}
+                setFilters={setFilters}
                 logicalOperator={logicalOperator}
                 setLogicalOperator={setLogicalOperator}
               />
@@ -333,21 +359,30 @@ const InitialState = ({ serviceName }: { serviceName: string }) => (
 );
 
 const ResultCard = ({ result, columns, onExplain }: { result: any, columns: string[], onExplain: (result: any) => void }) => {
-  const totalScore = Object.values(result.score_components).reduce((sum: number, score: any) => sum + score, 0);
+  if (!result) return null;
+
+  const score = result.SCORE ?? 0;
+  const scoreComponents = result.score_components || {};
+  const totalScore = Object.values(scoreComponents).reduce((sum: number, s: any) => sum + s, 0) || 1;
+  const rank = result.rank || '-';
+  const sourceType = result.source_type || 'Unknown';
+  const sourceId = sourceType === 'PDF'
+    ? `Source: ${result.SOURCE_FILENAME || 'N/A'} (Page ${result.PAGE_NUMBER || 'N/A'})`
+    : `AGENT_ID: ${result.AGENT_ID || 'N/A'}`;
 
   return (
     <div className="border-b border-gray-200 py-4">
       <div className="flex items-start space-x-4">
-        <span className="text-gray-500 text-sm font-medium pt-1">{result.rank}.</span>
+        <span className="text-gray-500 text-sm font-medium pt-1">{rank}.</span>
         <div className="flex-1">
           <div className="flex justify-between items-start">
-            <p className="text-xs text-gray-500 font-semibold mb-2">{result.source_type === 'PDF' ? `Source: ${result.SOURCE_FILENAME} (Page ${result.PAGE_NUMBER})` : `AGENT_ID: ${result.AGENT_ID}`}</p>
+            <p className="text-xs text-gray-500 font-semibold mb-2">{sourceId}</p>
             <div className="text-right">
-              <span className="text-lg font-bold text-gray-700">{result.SCORE.toFixed(2)}</span>
+              <span className="text-lg font-bold text-gray-700">{score.toFixed(2)}</span>
               <div className="flex h-1.5 w-24 mt-1 rounded-full overflow-hidden bg-gray-200">
-                <div style={{ width: `${(result.score_components['CONTENT (text)'] || result.score_components['CONTENT (vector)']) / totalScore * 100}%` }} className="bg-blue-500" title="Content Score"></div>
-                <div style={{ width: `${(result.score_components['TITLE (text)']) / totalScore * 100}%` }} className="bg-green-500" title="Title Score"></div>
-                <div style={{ width: `${(result.score_components['RATING (boost)'] || result.score_components['freshness (decay)']) / totalScore * 100}%` }} className="bg-purple-500" title="Boost/Decay"></div>
+                <div style={{ width: `${((scoreComponents['CONTENT (text)'] || scoreComponents['CONTENT (vector)'] || 0) / totalScore) * 100}%` }} className="bg-blue-500" title="Content Score"></div>
+                <div style={{ width: `${((scoreComponents['TITLE (text)'] || 0) / totalScore) * 100}%` }} className="bg-green-500" title="Title Score"></div>
+                <div style={{ width: `${((scoreComponents['RATING (boost)'] || scoreComponents['freshness (decay)'] || 0) / totalScore) * 100}%` }} className="bg-purple-500" title="Boost/Decay"></div>
               </div>
             </div>
           </div>
@@ -374,9 +409,9 @@ const ResultCard = ({ result, columns, onExplain }: { result: any, columns: stri
   );
 };
 
-const QueryPanel = ({ limit, setLimit, selectedColumns, setSelectedColumns, logicalOperator, setLogicalOperator }: QueryPanelProps) => {
+const QueryPanel = ({ limit, setLimit, selectedColumns, setSelectedColumns, filters, setFilters, logicalOperator, setLogicalOperator }: QueryPanelProps) => {
   const [isColumnSelectorOpen, setIsColumnSelectorOpen] = useState(false);
-  const [filters, setFilters] = useState<Filter[]>([{ column: 'CATEGORY', operator: '@eq', value: 'Electronics', negate: false }]);
+  const allColumns = ['DOC_ID', 'TITLE', 'CONTENT', 'CATEGORY', 'PRICE', 'RATING', 'DATE', 'REGION', 'AGENT_ID'];
 
   const handleFilterChange = (index: number, field: keyof Filter, value: any) => {
     const newFilters = filters.map((filter, i) => {
@@ -389,11 +424,11 @@ const QueryPanel = ({ limit, setLimit, selectedColumns, setSelectedColumns, logi
   };
 
   const addFilter = () => {
-    setFilters([...filters, { column: 'PRICE', operator: '@gte', value: '1000', negate: false }]);
+    setFilters([...filters, { id: Date.now(), column: 'CATEGORY', operator: '@eq', value: 'Electronics', negate: false }]);
   };
 
-  const removeFilter = (index: number) => {
-    setFilters(filters.filter((_, i) => i !== index));
+  const removeFilter = (id: number) => {
+    setFilters(filters.filter(f => f.id !== id));
   };
   
   const generatedJson = () => {
@@ -402,10 +437,10 @@ const QueryPanel = ({ limit, setLimit, selectedColumns, setSelectedColumns, logi
       return f.negate ? { "@not": clause } : clause;
     });
 
+    if (filterClauses.length === 0) return '';
     if (filterClauses.length === 1) {
       return JSON.stringify(filterClauses[0], null, 2);
     }
-
     return JSON.stringify({ [logicalOperator]: filterClauses }, null, 2);
   };
 
@@ -463,15 +498,15 @@ const QueryPanel = ({ limit, setLimit, selectedColumns, setSelectedColumns, logi
             {isColumnSelectorOpen && (
               <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
                 {allColumns.map(col => (
-                  <div key={col.name} className="flex items-center justify-between px-3 py-2 hover:bg-gray-50">
+                  <div key={col} className="flex items-center justify-between px-3 py-2 hover:bg-gray-50">
                     <div>
-                      <span className="font-medium text-gray-800 text-sm">{col.name}</span>
-                      <p className="text-xs text-gray-500">{col.type}</p>
+                      <span className="font-medium text-gray-800 text-sm">{col}</span>
+                      <p className="text-xs text-gray-500">{allColumns.includes(col) ? 'Search column' : 'Attribute column'}</p>
                     </div>
                     <input
                       type="checkbox"
-                      checked={selectedColumns.includes(col.name)}
-                      onChange={() => toggleColumn(col.name)}
+                      checked={selectedColumns.includes(col)}
+                      onChange={() => toggleColumn(col)}
                       className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                   </div>
@@ -537,7 +572,7 @@ const QueryPanel = ({ limit, setLimit, selectedColumns, setSelectedColumns, logi
                   onChange={e => handleFilterChange(index, 'value', e.target.value)}
                   className="w-1/3 px-2 py-1 border border-gray-300 rounded-md text-sm"
                 />
-                <button onClick={() => removeFilter(index)} className="text-gray-400 hover:text-red-600">
+                <button onClick={() => removeFilter(filter.id)} className="text-gray-400 hover:text-red-600">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                 </button>
               </div>
@@ -546,16 +581,18 @@ const QueryPanel = ({ limit, setLimit, selectedColumns, setSelectedColumns, logi
               + Add filter
             </button>
           </div>
-          <textarea
-            id="filter-json"
-            rows={5}
-            value={generatedJson()}
-            readOnly
-            className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 font-mono text-xs"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            The JSON for your filter is generated automatically. <a href="#" className="text-blue-600 hover:underline">Filter syntax</a>
-          </p>
+          <h4 className="font-semibold mb-2">Generated Filter JSON</h4>
+          <div className="relative">
+            <textarea
+              readOnly
+              value={generatedJson()}
+              className="w-full h-32 p-2 font-mono text-xs bg-gray-100 border rounded-md resize-none"
+              placeholder="JSON will appear here..."
+            />
+            <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-700">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </button>
+          </div>
         </div>
 
         <div>
@@ -761,25 +798,21 @@ interface ColumnWeightSliderProps {
   setWeight: (weight: number) => void;
 }
 
-const ColumnWeightSlider = ({ column, weight, setWeight }: ColumnWeightSliderProps) => {
-  return (
-    <div>
-      <label className="text-sm font-medium text-gray-700">{column}</label>
-      <div className="flex items-center space-x-3 mt-1">
-        <input
-          type="range"
-          min="0.5"
-          max="3"
-          step="0.1"
-          value={weight}
-          onChange={(e) => setWeight(parseFloat(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-        />
-        <span className="text-sm font-mono text-gray-600 w-12 text-center">{weight.toFixed(1)}x</span>
-      </div>
-    </div>
-  );
-};
+const ColumnWeightSlider = ({ column, weight, setWeight }: ColumnWeightSliderProps) => (
+  <div className="flex items-center space-x-4">
+    <span className="w-20 text-sm">{column}</span>
+    <input
+      type="range"
+      min="0.1"
+      max="3"
+      step="0.1"
+      value={weight ?? 0}
+      onChange={(e) => setWeight(parseFloat(e.target.value))}
+      className="flex-1"
+    />
+    <span className="text-sm font-medium w-10 text-right">{(weight ?? 0).toFixed(1)}x</span>
+  </div>
+);
 
 const InfoTooltip = ({ text }: { text: string }) => (
   <div className="relative flex items-center group ml-1.5">
@@ -793,6 +826,9 @@ const InfoTooltip = ({ text }: { text: string }) => (
 const ExplainPanel = ({ result, onClose }: { result: any, onClose: () => void }) => {
   if (!result) return null;
 
+  const score = result.SCORE ?? 0;
+  const scoreComponents = result.score_components || {};
+
   return (
     <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-xl z-20 p-6 border-l flex flex-col">
       <div className="flex items-center justify-between pb-4 border-b">
@@ -801,10 +837,10 @@ const ExplainPanel = ({ result, onClose }: { result: any, onClose: () => void })
       </div>
       <div className="py-4 space-y-2">
         <div>
-          <span className="font-semibold">DOC_ID:</span> {result.DOC_ID}
+          <span className="font-semibold">DOC_ID:</span> {result.DOC_ID || 'N/A'}
         </div>
         <div>
-          <span className="font-semibold">Final Score:</span> {result.SCORE.toFixed(2)}
+          <span className="font-semibold">Final Score:</span> {score.toFixed(2)}
         </div>
       </div>
       <div className="flex-1 overflow-y-auto">
@@ -816,7 +852,7 @@ const ExplainPanel = ({ result, onClose }: { result: any, onClose: () => void })
             </tr>
           </thead>
           <tbody>
-            {Object.entries(result.score_components).map(([key, value]) => (
+            {Object.entries(scoreComponents).map(([key, value]) => (
               <tr key={key} className="border-b">
                 <td className="p-2">{key}</td>
                 <td className="p-2 font-mono">{(value as number).toFixed(2)}</td>
