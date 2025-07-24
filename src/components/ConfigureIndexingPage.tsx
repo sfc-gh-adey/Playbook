@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { WizardData } from '../App';
 
 interface Props {
@@ -7,6 +7,14 @@ interface Props {
 }
 
 export default function ConfigureIndexingPage({ data, onUpdate }: Props) {
+
+  useEffect(() => {
+    // If pipeline is visual, automatically select and update the embedding model
+    if (data.pipelineType === 'visual' && data.embeddingModel !== 'voyage-multimodal-3') {
+      onUpdate({ embeddingModel: 'voyage-multimodal-3' });
+    }
+  }, [data.pipelineType, data.embeddingModel, onUpdate]);
+
   return (
     <div className="max-w-2xl">
       <div className="mb-8">
@@ -54,68 +62,39 @@ export default function ConfigureIndexingPage({ data, onUpdate }: Props) {
           </p>
         </div>
 
-        {/* Embedding Model */}
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            Embedding model <span className="text-gray-500 font-normal">(optional)</span>
-          </h3>
-          
+          <label htmlFor="embedding-model" className="text-base font-medium text-gray-900 flex items-center">
+            Embedding model
+            <span className="text-sm text-gray-500 ml-2">(optional)</span>
+            {data.pipelineType === 'visual' && (
+              <div className="ml-2 relative group">
+                <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="absolute left-0 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  This model is optimal for multimodal embeddings required for PDFs with visually rich data.
+                </div>
+              </div>
+            )}
+          </label>
           <select
-            value={data.embeddingModel}
+            id="embedding-model"
+            value={data.pipelineType === 'visual' ? 'voyage-multimodal-3' : data.embeddingModel || ''}
             onChange={(e) => onUpdate({ embeddingModel: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            disabled={data.pipelineType === 'visual'}
+            className="mt-2 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             <option value="snowflake-arctic-embed-m-v1.5">snowflake-arctic-embed-m-v1.5</option>
-            <option value="snowflake-arctic-embed-l-v2.0">snowflake-arctic-embed-l-v2.0</option>
-            <option value="snowflake-arctic-embed-l-v2.0-8k">snowflake-arctic-embed-l-v2.0-8k</option>
-            <option value="voyage-multilingual-2">voyage-multilingual-2</option>
+            <option value="voyage-multimodal-3">voyage-multimodal-3</option>
+            {/* Add other models here if needed */}
           </select>
-          
-          <p className="mt-2 text-sm text-gray-600">
-            Each model may incur a different cost per million input tokens processed. Refer to the{' '}
-            <a href="#" className="text-blue-600 hover:text-blue-500">
-              Snowflake Service Consumption Table
-            </a>
-            .
-          </p>
-          <p className="mt-1 text-sm text-gray-600">
-            For more information about each embedding model, refer to the{' '}
-            <a href="#" className="text-blue-600 hover:text-blue-500">
-              Cortex Search documentation
-            </a>
-            .
+          <p className="mt-2 text-sm text-gray-500">
+            Each model may incur a different cost per million input tokens processed. Refer to the <a href="#" className="text-blue-600 hover:underline">Snowflake Service Consumption Table</a>.
           </p>
         </div>
 
-        {/* Warehouse for Indexing */}
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Warehouse for indexing</h3>
-          
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">⚡</span>
-            <select
-              value={data.indexingWarehouse}
-              onChange={(e) => onUpdate({ indexingWarehouse: e.target.value })}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select warehouse...</option>
-              <option value="ADEY_TEST">ADEY_TEST</option>
-              <option value="COMPUTE_WH">COMPUTE_WH</option>
-              <option value="DEMO_WH">DEMO_WH</option>
-            </select>
-          </div>
-          
-          <p className="mt-2 text-sm text-gray-600">
-            Indexing can take couple minutes to an hour depending on size of data.{' '}
-            <a href="#" className="text-blue-600 hover:text-blue-500">
-              See documentation
-            </a>
-            .
-          </p>
-        </div>
-
-
+        {/* Warehouse for indexing section is removed */}
       </div>
     </div>
   );
-} 
+}; 

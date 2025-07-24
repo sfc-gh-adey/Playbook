@@ -1,16 +1,14 @@
-import { useState } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
-import NewServicePage from './components/NewServicePage';
-import SelectDataPage from './components/SelectDataPage';
-import ChooseProcessingPipelinePage from './components/ChooseProcessingPipelinePage';
-import SelectSearchColumnPage from './components/SelectSearchColumnPage';
-
-import ConfigureIndexingPage from './components/ConfigureIndexingPage';
-import ServiceLandingPage from './components/ServiceLandingPage';
-import SelectAttributesPage from './components/SelectAttributesPage';
-import SelectReturnColumnsPage from './components/SelectReturnColumnsPage';
-import GeneratedSchemaPage from './components/GeneratedSchemaPage';
-import PlaygroundPage from './components/PlaygroundPage';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import NewServicePage from './components/NewServicePage.tsx';
+import SelectDataPage from './components/SelectDataPage.tsx';
+import ChooseProcessingPipelinePage from './components/ChooseProcessingPipelinePage.tsx';
+import SelectSearchColumnPage from './components/SelectSearchColumnPage.tsx';
+import SelectAttributesPage from './components/SelectAttributesPage.tsx';
+import SelectReturnColumnsPage from './components/SelectReturnColumnsPage.tsx';
+import ConfigureIndexingPage from './components/ConfigureIndexingPage.tsx';
+import ServiceLandingPage from './components/ServiceLandingPage.tsx';
+import PlaygroundPage from './components/PlaygroundPage.tsx';
 import './App.css';
 
 export interface WizardData {
@@ -55,9 +53,9 @@ export interface WizardData {
 }
 
 const initialWizardData: WizardData = {
-  serviceName: 'My Search Service',
-  database: 'ADEY_TEST_DB.TEST',
-  schema: 'TEST',
+  serviceName: '',
+  database: '',
+  schema: '',
   warehouse: '',
   dataSourceType: null,
   stagePath: '',
@@ -93,8 +91,6 @@ function Wizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const navigate = useNavigate();
 
-
-
   const updateWizardData = (updates: Partial<WizardData>) => {
     setWizardData(prev => ({ ...prev, ...updates }));
   };
@@ -103,99 +99,61 @@ function Wizard() {
     setCurrentStep(step);
   };
 
-  const steps = [
-    { number: 1, id: 'new-service', title: 'New service', completed: currentStep > 1 },
-    { number: 2, id: 'select-data', title: 'Select data', completed: currentStep > 2 },
-    { 
-      number: 3, 
-      id: wizardData.dataSourceType === 'stage' ? 'choose-pipeline' : 'select-search-column', 
-      title: wizardData.dataSourceType === 'stage' ? 'Choose Processing Pipeline' : 'Select search column', 
-      completed: currentStep > 3 
-    },
-    { 
-      number: 4, 
-      id: wizardData.dataSourceType === 'stage' ? 'select-metadata' : 'select-attributes', 
-      title: wizardData.dataSourceType === 'stage' ? 'Select metadata' : 'Select attributes', 
-      completed: currentStep > 4 
-    },
-    {
-      number: 5,
-      id: wizardData.dataSourceType === 'table' ? 'select-return-columns' : 'configure-indexing',
-      title: wizardData.dataSourceType === 'table' ? 'Select columns' : 'Configure indexing',
-      completed: currentStep > 5
-    },
-    { 
-      number: 6, 
-      id: 'configure-indexing', 
-      title: 'Configure indexing', 
-      completed: currentStep > 6 
-    },
-  ];
+  // Build steps array based on data source type
+  const getSteps = () => {
+    const baseSteps = [
+      { number: 1, id: 'new-service', title: 'New service', completed: currentStep > 1 },
+      { number: 2, id: 'select-data', title: 'Select data', completed: currentStep > 2 },
+    ];
 
-  const getCurrentStepData = () => {
-    switch (currentStep) {
-      case 1:
-        return {
-          canGoNext: !!(wizardData.serviceName && wizardData.database && wizardData.schema && wizardData.warehouse),
-          nextLabel: 'Next: Select data'
-        };
-      case 2:
-        return {
-          canGoNext: wizardData.dataSourceType === 'stage' 
-            ? wizardData.selectedFiles.length > 0 
-            : wizardData.dataSourceType === 'table' 
-            ? !!wizardData.selectedTable 
-            : false,
-          nextLabel: wizardData.dataSourceType === 'stage' 
-            ? 'Next: Choose Processing Pipeline' 
-            : 'Next: Select search column'
-        };
-      case 3:
-        if (wizardData.dataSourceType === 'table') {
-          return {
-            canGoNext: wizardData.searchColumns.length > 0,
-            nextLabel: 'Next: Select attributes'
-          }
-        }
-        return {
-          canGoNext: wizardData.dataSourceType === 'stage' 
-            ? !!wizardData.pipelineType 
-            : true, // Table flow doesn't need additional validation on this step
-          nextLabel: wizardData.dataSourceType === 'stage' 
-            ? 'Next: Select metadata' 
-            : 'Next: Select attributes'
-        };
-      case 4:
-        if (wizardData.dataSourceType === 'stage') {
-          // The schema page is read-only, so we can always proceed.
-          return { canGoNext: true, nextLabel: 'Next: Configure indexing' };
-        }
-        return {
-          canGoNext: wizardData.attributeColumns.length > 0,
-          nextLabel: 'Next: Select columns'
-        };
-      case 5:
-        if (wizardData.dataSourceType === 'table') {
-          return {
-            canGoNext: wizardData.returnColumns.length > 0,
-            nextLabel: 'Next: Configure indexing'
-          }
-        }
-        return {
-          canGoNext: !!(wizardData.targetLag && wizardData.embeddingModel && wizardData.indexingWarehouse),
-          nextLabel: 'Create Search Service'
-        };
-      case 6:
-        return {
-          canGoNext: !!(wizardData.targetLag && wizardData.embeddingModel && wizardData.indexingWarehouse),
-          nextLabel: 'Create Search Service'
-        };
-      default:
-        return { canGoNext: false, nextLabel: 'Next' };
+    if (wizardData.dataSourceType === 'stage') {
+      return [
+        ...baseSteps,
+        { number: 3, id: 'choose-pipeline', title: 'PDF data processing', completed: currentStep > 3 },
+        { number: 4, id: 'configure-indexing', title: 'Configure indexing', completed: currentStep > 4 }
+      ];
+    } else if (wizardData.dataSourceType === 'table') {
+      return [
+        ...baseSteps,
+        { number: 3, id: 'select-search-columns', title: 'Select search columns', completed: currentStep > 3 },
+        { number: 4, id: 'select-attributes', title: 'Select attributes', completed: currentStep > 4 },
+        { number: 5, id: 'select-return-columns', title: 'Select columns', completed: currentStep > 5 },
+        { number: 6, id: 'configure-indexing', title: 'Configure indexing', completed: currentStep > 6 },
+      ];
     }
+    
+    // Default steps when no data source is selected
+    return baseSteps;
   };
 
-  const { canGoNext, nextLabel } = getCurrentStepData();
+  const steps = getSteps();
+  const totalSteps = steps.length;
+
+  const canGoNext = () => {
+    switch (currentStep) {
+      case 1:
+        return !!(wizardData.serviceName && wizardData.database && wizardData.schema && wizardData.warehouse);
+      case 2:
+        return wizardData.dataSourceType === 'table' ? !!wizardData.selectedTable : wizardData.selectedFiles.length > 0;
+      case 3:
+        if (wizardData.dataSourceType === 'stage') {
+          return !!(wizardData.pipelineType && wizardData.generatedTableDatabase && wizardData.generatedTableSchema);
+        }
+        return wizardData.searchColumns.length > 0;
+      case 4:
+        if (wizardData.dataSourceType === 'stage') {
+          // Removed indexingWarehouse from this check
+          return !!(wizardData.targetLag && wizardData.embeddingModel);
+        }
+        return wizardData.attributeColumns.length > 0;
+      case 5:
+        return wizardData.returnColumns.length > 0;
+      case 6:
+        return !!(wizardData.targetLag && wizardData.embeddingModel && wizardData.indexingWarehouse);
+      default:
+        return false;
+    }
+  };
 
   const handleCreateService = () => {
     // Here you would typically make an API call to create the service
@@ -204,7 +162,41 @@ function Wizard() {
     navigate(`/service/${encodeURIComponent(serviceName)}`);
   };
 
-  const totalSteps = wizardData.dataSourceType === 'table' ? 6 : 5;
+  const renderCurrentStep = () => {
+    switch (currentStep) {
+      case 1:
+        return <NewServicePage data={wizardData} onUpdate={updateWizardData} />;
+      case 2:
+        return <SelectDataPage data={wizardData} onUpdate={updateWizardData} />;
+      case 3:
+        if (wizardData.dataSourceType === 'table') {
+          return <SelectSearchColumnPage data={wizardData} onUpdate={updateWizardData} />;
+        } else if (wizardData.dataSourceType === 'stage') {
+          return <ChooseProcessingPipelinePage data={wizardData} onUpdate={updateWizardData} />;
+        }
+        // Fallback - shouldn't happen with proper navigation
+        return <div>Please select a data source type</div>;
+      case 4:
+        if (wizardData.dataSourceType === 'table') {
+          return <SelectAttributesPage data={wizardData} onUpdate={updateWizardData} />;
+        } else if (wizardData.dataSourceType === 'stage') {
+          return <ConfigureIndexingPage data={wizardData} onUpdate={updateWizardData} />;
+        }
+        return <div>Please select a data source type</div>;
+      case 5:
+        if (wizardData.dataSourceType === 'table') {
+          return <SelectReturnColumnsPage data={wizardData} onUpdate={updateWizardData} />;
+        }
+        return <div>Please select a data source type</div>;
+      case 6:
+        if (wizardData.dataSourceType === 'table') {
+          return <ConfigureIndexingPage data={wizardData} onUpdate={updateWizardData} />;
+        }
+        return <div>Please select a data source type</div>;
+      default:
+        return <NewServicePage data={wizardData} onUpdate={updateWizardData} />;
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -260,60 +252,7 @@ function Wizard() {
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 p-8 overflow-y-auto">
-            {currentStep === 1 && (
-              <NewServicePage
-                data={wizardData}
-                onUpdate={updateWizardData}
-              />
-            )}
-            {currentStep === 2 && (
-              <SelectDataPage
-                data={wizardData}
-                onUpdate={updateWizardData}
-              />
-            )}
-            {currentStep === 3 && wizardData.dataSourceType === 'stage' && (
-              <ChooseProcessingPipelinePage
-                data={wizardData}
-                onUpdate={updateWizardData}
-              />
-            )}
-            {currentStep === 3 && wizardData.dataSourceType === 'table' && (
-              <SelectSearchColumnPage
-                data={wizardData}
-                onUpdate={updateWizardData}
-              />
-            )}
-            {currentStep === 4 && wizardData.dataSourceType === 'table' && (
-              <SelectAttributesPage
-                data={wizardData}
-                onUpdate={updateWizardData}
-              />
-            )}
-            {currentStep === 5 && wizardData.dataSourceType === 'table' && (
-              <SelectReturnColumnsPage
-                data={wizardData}
-                onUpdate={updateWizardData}
-              />
-            )}
-            {currentStep === 4 && wizardData.dataSourceType === 'stage' && (wizardData.pipelineType === 'visual' || wizardData.pipelineType === 'text') && (
-              <GeneratedSchemaPage
-                data={wizardData}
-                onUpdate={updateWizardData}
-              />
-            )}
-            {currentStep === 5 && wizardData.dataSourceType === 'stage' && (
-              <ConfigureIndexingPage
-                data={wizardData}
-                onUpdate={updateWizardData}
-              />
-            )}
-            {currentStep === 6 && wizardData.dataSourceType === 'table' && (
-              <ConfigureIndexingPage
-                data={wizardData}
-                onUpdate={updateWizardData}
-              />
-            )}
+            {renderCurrentStep()}
           </div>
 
           {/* Bottom Navigation */}
@@ -337,17 +276,16 @@ function Wizard() {
               
               <button
                 onClick={() => {
-                  const finalStep = wizardData.dataSourceType === 'table' ? 6 : 5;
-                  if (currentStep < finalStep) {
+                  if (currentStep < totalSteps) {
                     goToStep(currentStep + 1);
                   } else {
                     handleCreateService();
                   }
                 }}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!canGoNext}
+                disabled={!canGoNext()}
               >
-                {nextLabel}
+                {currentStep === totalSteps ? 'Create Search Service' : `Next: ${steps[currentStep]?.title || ''}`}
               </button>
             </div>
           </div>

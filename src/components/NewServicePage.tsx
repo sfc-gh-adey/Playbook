@@ -59,17 +59,24 @@ export default function NewServicePage({ data, onUpdate }: Props) {
           
           <div className="space-y-4">
             <select
-              value={data.database}
+              value={data.database && data.schema ? `${data.database}.${data.schema}` : ''}
               onChange={(e) => {
-                const [database, schema] = e.target.value.split('.');
-                onUpdate({ 
-                  database: e.target.value,
-                  schema: schema || ''
-                });
+                if (e.target.value) {
+                  const [database, schema] = e.target.value.split('.');
+                  onUpdate({ 
+                    database,
+                    schema
+                  });
+                } else {
+                  onUpdate({ 
+                    database: '',
+                    schema: ''
+                  });
+                }
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">Select database...</option>
+              <option value="">Select database and schema...</option>
               <option value="ADEY_TEST_DB.TEST">ADEY_TEST_DB.TEST</option>
               <option value="CORTEX_SEARCH_DB.PUBLIC">CORTEX_SEARCH_DB.PUBLIC</option>
               <option value="DEMO_DB.PUBLIC">DEMO_DB.PUBLIC</option>
