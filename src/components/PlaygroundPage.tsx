@@ -58,54 +58,10 @@ const mockResultsA: SearchResult[] = [
 ];
 
 
-  {
-    DOC_ID: "doc-xyz-789",
-    TITLE: "Financial_Report_Q1_2024.pdf",
-    CONTENT: "The company's net revenue increased by 15% year-over-year, driven by strong performance in the cloud services division.",
-    CATEGORY: "Finance",
-    PRICE: null,
-    RATING: null,
-    DATE: "2024-04-25",
-    REGION: "Global",
-    AGENT_ID: null,
-    SOURCE_FILENAME: "Financial_Report_Q1_2024.pdf",
-    PAGE_NUMBER: 12,
-    SCORE: 0.95,
-    source_type: 'PDF',
-    score_components: {
-      'CONTENT (vector)': 0.8,
-      'TITLE (text)': 0.1,
-      'freshness (decay)': 0.05
-    }
-  },
-  {
-    DOC_ID: "doc-abc-123",
-    TITLE: "Marketing_Strategy_2025.pdf",
-    CONTENT: "Our new marketing campaign will focus on social media engagement and influencer partnerships to target a younger demographic.",
-    CATEGORY: "Marketing",
-    PRICE: null,
-    RATING: null,
-    DATE: "2024-05-10",
-    REGION: "Global",
-    AGENT_ID: null,
-    SOURCE_FILENAME: "Marketing_Strategy_2025.pdf",
-    PAGE_NUMBER: 2,
-    SCORE: 0.81,
-    source_type: 'PDF',
-    score_components: {
-      'CONTENT (vector)': 0.7,
-      'TITLE (text)': 0.05,
-      'freshness (decay)': 0.06
-    }
-  }
-];
+  
 
 
-  'CHAT_CUSTOMER_TEST_CSS_A',
-  'CHAT_CUSTOMER_TEST_CSS_B',
-  'PRODUCT_CATALOG_V1',
-  'FINANCIAL_DOCS_SERVICE',
-];
+  
 
 
 

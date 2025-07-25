@@ -46,7 +46,7 @@ export default function SelectSearchColumn({ data, onUpdate }: Props) {
                   type="radio"
                   name="search-column"
                   checked={data.searchColumn === col}
-                  onChange={() => onUpdate({ searchColumns: newSearchColumns });}
+                  onChange={() => onUpdate({ searchColumns: [col] })}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                 />
               </li>
