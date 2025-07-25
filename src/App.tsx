@@ -84,7 +84,6 @@ const initialWizardData: WizardData = {
 function App() {
   const [githubUser, setGithubUser] = useState<any>(null);
   const [githubToken, setGithubToken] = useState<string>('');
-  const [currentWizardStep, setCurrentWizardStep] = useState<string>('');
 
   // Load GitHub user on mount
   useEffect(() => {
@@ -108,7 +107,7 @@ function App() {
       </Navbar>
       <div style={{ paddingTop: '80px' }}> {/* Increased padding for fixed navbar */}
         <Routes>
-          <Route path="/" element={<Wizard onStepChange={setCurrentWizardStep} />} />
+          <Route path="/" element={<Wizard />} />
           <Route path="/service/:serviceName" element={<ServiceLandingPage />} />
           <Route path="/service/:serviceName/playground" element={<PlaygroundPage />} />
         </Routes>
@@ -116,13 +115,12 @@ function App() {
       <CommentSystem 
         githubUser={githubUser}
         githubToken={githubToken}
-        pageContext={currentWizardStep}
       />
     </>
   );
 }
 
-function Wizard({ onStepChange }: { onStepChange: (step: string) => void }) {
+function Wizard() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [wizardData, setWizardData] = useState<WizardData>(initialWizardData);
@@ -164,14 +162,6 @@ function Wizard({ onStepChange }: { onStepChange: (step: string) => void }) {
 
   const steps = getSteps();
   const totalSteps = steps.length;
-
-  // Notify parent about step changes
-  useEffect(() => {
-    const currentStepInfo = steps.find(s => s.id === currentStep);
-    if (currentStepInfo) {
-      onStepChange(`Step ${currentStep}: ${currentStepInfo.name}`);
-    }
-  }, [currentStep, wizardData.dataSourceType, onStepChange]); // Added wizardData.dataSourceType to dependencies
 
   const canGoNext = () => {
     switch (currentStep) {

@@ -12,7 +12,7 @@ interface Comment {
   timestamp: Date;
   replies: Reply[];
   pageUrl: string;
-  pageContext?: string; // New field for additional context like wizard step
+  pageContext?: string; // Automatically captured context
   githubIssueNumber?: number;
 }
 
@@ -21,7 +21,7 @@ interface LocalComment {
   x: number;
   y: number;
   pageUrl: string;
-  pageContext?: string; // New field
+  pageContext?: string;
   githubIssueNumber?: number;
 }
 
@@ -32,27 +32,100 @@ interface Reply {
   timestamp: Date;
 }
 
-interface CommentPin {
-  comment: Comment;
-  isActive: boolean;
-}
-
 interface CommentSystemProps {
   githubUser?: any;
   githubToken?: string;
-  pageContext?: string; // New prop to receive current page context
 }
 
-const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken, pageContext }) => {
+// Helper function to capture current page context
+const capturePageContext = (): string => {
+  // Capture various UI states that might differentiate pages
+  const context: string[] = [];
+  
+  // 1. Check for active modal/dialog
+  const activeModal = document.querySelector('[role="dialog"]:not([aria-hidden="true"])');
+  if (activeModal) {
+    const modalTitle = activeModal.querySelector('h1, h2, h3, [role="heading"]')?.textContent;
+    if (modalTitle) context.push(`Modal: ${modalTitle.trim()}`);
+  }
+  
+  // 2. Check for active tab
+  const activeTab = document.querySelector('[role="tab"][aria-selected="true"]');
+  if (activeTab) {
+    const tabText = activeTab.textContent;
+    if (tabText) context.push(`Tab: ${tabText.trim()}`);
+  }
+  
+  // 3. Check for wizard/stepper step
+  const activeStep = document.querySelector('[aria-current="step"], .bg-blue-600.text-white');
+  if (activeStep) {
+    const stepText = activeStep.textContent || 
+                    activeStep.parentElement?.textContent ||
+                    activeStep.getAttribute('aria-label');
+    if (stepText) context.push(`Step: ${stepText.trim()}`);
+  }
+  
+  // 4. Check for selected items in sidebar/navigation
+  const selectedNavItem = document.querySelector('nav [aria-current="page"], nav .bg-blue-50');
+  if (selectedNavItem) {
+    const navText = selectedNavItem.textContent;
+    if (navText) context.push(`Nav: ${navText.trim()}`);
+  }
+  
+  // 5. Check for form/section headings
+  const mainHeading = document.querySelector('main h1, [role="main"] h1, .wizard-content h1');
+  if (mainHeading) {
+    const headingText = mainHeading.textContent;
+    if (headingText) context.push(`Section: ${headingText.trim()}`);
+  }
+  
+  // 6. Check data attributes for custom context
+  const contextElement = document.querySelector('[data-comment-context]');
+  if (contextElement) {
+    const customContext = contextElement.getAttribute('data-comment-context');
+    if (customContext) context.push(customContext);
+  }
+  
+  return context.join(' > ');
+};
+
+const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }) => {
   const [isCommentMode, setIsCommentMode] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [activeComment, setActiveComment] = useState<string | null>(null);
   const [showCommentButton, setShowCommentButton] = useState(true);
   const overlayRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+  
+  // Capture current page context
+  const [currentContext, setCurrentContext] = useState('');
+  
+  // Update context when DOM changes
+  useEffect(() => {
+    const updateContext = () => {
+      setCurrentContext(capturePageContext());
+    };
+    
+    // Initial capture
+    updateContext();
+    
+    // Set up observer for DOM changes
+    const observer = new MutationObserver(() => {
+      updateContext();
+    });
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['aria-current', 'aria-selected', 'class', 'data-comment-context']
+    });
+    
+    return () => observer.disconnect();
+  }, [location.pathname]);
 
-  // Create a unique page identifier combining URL and context
-  const currentPageId = `${location.pathname}${pageContext ? `#${pageContext}` : ''}`;
+  // Create a unique page identifier
+  const currentPageId = `${location.pathname}${currentContext ? `#${currentContext}` : ''}`;
 
   // Load comments from localStorage and fetch from GitHub on mount
   useEffect(() => {
@@ -172,11 +245,11 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken, 
     setComments(fullComments);
   };
 
-  // Watch for route changes and close active comments
+  // Watch for context changes and close active comments
   useEffect(() => {
     setActiveComment(null);
     setIsCommentMode(false);
-  }, [currentPageId]); // Changed from location.pathname to currentPageId
+  }, [currentPageId]);
 
   // Add keyboard shortcut for toggling comment mode
   useEffect(() => {
@@ -213,11 +286,11 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken, 
       x,
       y,
       text: '',
-      author: githubUser?.login || 'Local User',
+      author: githubUser?.login || 'Local User', // Use login for consistency
       timestamp: new Date(),
       replies: [],
       pageUrl: location.pathname,
-      pageContext: pageContext // Store the current context
+      pageContext: currentContext // Automatically captured context
     };
 
     setComments([...comments, newComment]);
