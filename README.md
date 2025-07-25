@@ -1,11 +1,25 @@
 # Playbook – Rapid Product Prototyping at Snowflake
 
-This platform helps you build interactive “living specs” for engineering, faster. Turn your product vision into a high-fidelity prototype using pre-built components and AI assistance.
+This platform helps you build interactive "living specs" for engineering, faster. Turn your product vision into a high-fidelity prototype using pre-built components and AI assistance.
 
 Our goal is to streamline the transition from product vision to engineering execution. We do this through:
 -   **Prototype as Specification:** The prototype serves as a living spec, reducing ambiguity for engineering.
 -   **Rapid Iteration:** Leverage templates and AI to quickly build and validate product ideas.
 -   **Design Consistency:** All prototypes use Snowflake's design system for a consistent user experience.
+
+---
+
+### Why Now?
+
+The convergence of AI capabilities and market dynamics makes this the critical moment for a platform like Playbook.
+
+**AI has changed the game.** We're no longer limited by the speed of manual UI development. With the right guidance, AI can translate product vision into working prototypes in hours, not weeks. But this is only valuable if PMs know how to harness it effectively—which is exactly what Playbook enables.
+
+**Snowflake is uniquely positioned.** We're not just a platform company; we're building a comprehensive product experience. As competitors race to add features, our ability to rapidly prototype, test, and ship user-facing capabilities becomes a critical differentiator. The companies that can move from idea to user value fastest will win.
+
+**The pace is only accelerating.** Customer expectations are rising, shaped by consumer software experiences. Enterprise users want powerful capabilities delivered through intuitive interfaces. This demands a new velocity of product development—one where the time from PM insight to engineering spec is measured in days, not months.
+
+Playbook is our response to this moment. It's how we ensure Snowflake's product innovation keeps pace with our platform innovation.
 
 ---
 
