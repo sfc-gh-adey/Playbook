@@ -23,11 +23,24 @@ Playbook is our response to this moment. It's how we ensure Snowflake's product 
 
 ---
 
-### Get Started
+### Run the Project
 
-1.  `npm install`
-2.  `npm run dev`
-3.  Open `http://localhost:5173`
+This project uses Vite for frontend serving and Vercel Serverless Functions for the backend (for handling GitHub OAuth). To run everything correctly locally, you must use the Vercel CLI.
+
+1.  **Install Vercel CLI** (if you haven't already):
+    ```bash
+    npm install -g vercel
+    ```
+2.  **Set up Environment Variables**:
+    -   Copy `.env.example` to a new file named `.env`.
+    -   Fill in your `VITE_GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` from your GitHub OAuth App.
+3.  **Run the development server**:
+    ```bash
+    vercel dev
+    ```
+4.  Open the local URL provided by the command.
+
+This will start a local server that perfectly mimics the Vercel cloud environment, running both your React app and the serverless API function.
 
 To create a new prototype from a template, run `npm run create-prototype <feature-name> <template-name>`.
 
