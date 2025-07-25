@@ -17,6 +17,17 @@ Our goal is to streamline the transition from product vision to engineering exec
 
 To create a new prototype from a template, run `npm run create-prototype <feature-name> <template-name>`.
 
+<details>
+<summary>View available templates</summary>
+
+| Template | Description | Best For |
+| :--- | :--- | :--- |
+| `wizard-flow` | Multi-step wizard interfaces | Setup flows, configurations, onboarding |
+| `data-explorer` | Data browsing and filtering | File browsers, table views, search results |
+| `service-dashboard` | Service management panels | Status pages, monitoring, settings |
+
+</details>
+
 ---
 
 ### AI Prompting Cheat Sheet
