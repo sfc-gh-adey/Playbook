@@ -9,6 +9,8 @@ import SelectReturnColumnsPage from './components/SelectReturnColumnsPage.tsx';
 import ConfigureIndexingPage from './components/ConfigureIndexingPage.tsx';
 import ServiceLandingPage from './components/ServiceLandingPage.tsx';
 import PlaygroundPage from './components/PlaygroundPage.tsx';
+import CommentSystem from './components/CommentSystem.tsx';
+import GitHubIntegration from './components/GitHubIntegration.tsx';
 import './App.css';
 
 
@@ -79,12 +81,29 @@ const initialWizardData: WizardData = {
 
 
 function App() {
+  const [githubConfig, setGithubConfig] = useState<any>(null);
+
+  // Load GitHub config on mount
+  useEffect(() => {
+    const savedConfig = localStorage.getItem('github-config');
+    if (savedConfig) {
+      setGithubConfig(JSON.parse(savedConfig));
+    }
+  }, []);
+
   return (
-    <Routes>
-      <Route path="/" element={<Wizard />} />
-      <Route path="/service/:serviceName" element={<ServiceLandingPage />} />
-      <Route path="/service/:serviceName/playground" element={<PlaygroundPage />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Wizard />} />
+        <Route path="/service/:serviceName" element={<ServiceLandingPage />} />
+        <Route path="/service/:serviceName/playground" element={<PlaygroundPage />} />
+      </Routes>
+      <CommentSystem githubConfig={githubConfig} />
+      <GitHubIntegration 
+        onConfigSave={setGithubConfig}
+        isConfigured={!!githubConfig}
+      />
+    </>
   );
 }
 
