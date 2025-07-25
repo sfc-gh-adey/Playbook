@@ -25,10 +25,11 @@ interface CommentPin {
 }
 
 interface CommentSystemProps {
-  githubConfig?: any;
+  githubUser?: any;
+  githubToken?: string;
 }
 
-const CommentSystem: React.FC<CommentSystemProps> = ({ githubConfig }) => {
+const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }) => {
   const [isCommentMode, setIsCommentMode] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [activeComment, setActiveComment] = useState<string | null>(null);
@@ -68,7 +69,7 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubConfig }) => {
       x,
       y,
       text: '',
-      author: 'Anonymous User', // Will be replaced with Google auth later
+      author: githubUser?.name || githubUser?.login || 'Anonymous User',
       timestamp: new Date(),
       replies: [],
       pageUrl: window.location.pathname

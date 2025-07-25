@@ -10,7 +10,7 @@ import ConfigureIndexingPage from './components/ConfigureIndexingPage.tsx';
 import ServiceLandingPage from './components/ServiceLandingPage.tsx';
 import PlaygroundPage from './components/PlaygroundPage.tsx';
 import CommentSystem from './components/CommentSystem.tsx';
-import GitHubIntegration from './components/GitHubIntegration.tsx';
+import GitHubAuth from './components/GitHubAuth.tsx';
 import './App.css';
 
 
@@ -81,15 +81,23 @@ const initialWizardData: WizardData = {
 
 
 function App() {
-  const [githubConfig, setGithubConfig] = useState<any>(null);
+  const [githubUser, setGithubUser] = useState<any>(null);
+  const [githubToken, setGithubToken] = useState<string>('');
 
-  // Load GitHub config on mount
+  // Load GitHub user on mount
   useEffect(() => {
-    const savedConfig = localStorage.getItem('github-config');
-    if (savedConfig) {
-      setGithubConfig(JSON.parse(savedConfig));
+    const savedUser = localStorage.getItem('github-user');
+    const savedToken = localStorage.getItem('github-token');
+    if (savedUser && savedToken) {
+      setGithubUser(JSON.parse(savedUser));
+      setGithubToken(savedToken);
     }
   }, []);
+
+  const handleAuthSuccess = (user: any, token: string) => {
+    setGithubUser(user);
+    setGithubToken(token);
+  };
 
   return (
     <>
@@ -98,10 +106,13 @@ function App() {
         <Route path="/service/:serviceName" element={<ServiceLandingPage />} />
         <Route path="/service/:serviceName/playground" element={<PlaygroundPage />} />
       </Routes>
-      <CommentSystem githubConfig={githubConfig} />
-      <GitHubIntegration 
-        onConfigSave={setGithubConfig}
-        isConfigured={!!githubConfig}
+      <CommentSystem 
+        githubUser={githubUser}
+        githubToken={githubToken}
+      />
+      <GitHubAuth 
+        clientId={import.meta.env.VITE_GITHUB_CLIENT_ID || 'your-client-id-here'}
+        onAuthSuccess={handleAuthSuccess}
       />
     </>
   );

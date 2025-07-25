@@ -28,7 +28,7 @@ const GitHubIntegration: React.FC<GitHubIntegrationProps> = ({ onConfigSave, isC
   };
 
   return (
-    <div className="fixed top-6 right-6 z-40">
+    <div className="fixed top-6 right-6" style={{ zIndex: 9998 }}>
       {!isConfigured ? (
         <button
           onClick={() => setShowConfig(true)}

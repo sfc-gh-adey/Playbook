@@ -31,6 +31,16 @@ Playbook is our response to this moment. It's how we ensure Snowflake's product 
 
 To create a new prototype from a template, run `npm run create-prototype <feature-name> <template-name>`.
 
+#### GitHub OAuth Setup (Optional - for commenting system)
+
+1. Create a GitHub OAuth App at https://github.com/settings/applications/new
+2. Set Authorization callback URL to `http://localhost:5173` (or your deployment URL)
+3. Create `.env` file:
+   ```
+   VITE_GITHUB_CLIENT_ID=your-client-id
+   ```
+4. For production, add `GITHUB_CLIENT_SECRET` to your Vercel environment variables
+
 <details>
 <summary>View available templates</summary>
 
