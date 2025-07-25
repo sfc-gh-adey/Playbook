@@ -55,15 +55,6 @@ const mockResultsA: SearchResult[] = [
       'RATING (boost)': 0.07
     }
   },
-];
-
-
-  
-
-
-  
-
-
 
 interface QueryPanelProps {
   limit: number;
