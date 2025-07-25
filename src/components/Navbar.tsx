@@ -15,7 +15,7 @@ const Navbar: React.FC<NavbarProps> = ({ children }) => {
           <img 
             src={snowflakeLogo} 
             alt="Snowflake" 
-            className="h-8 w-auto mr-2"
+            className="h-8 w-auto mr-1"
           />
           
           {/* Playbook text */}
