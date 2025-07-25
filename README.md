@@ -2,14 +2,24 @@
 
 This platform helps you build interactive "living specs" for engineering, faster. Turn your product vision into a high-fidelity prototype using pre-built components and AI assistance.
 
-Our goal is to streamline the transition from product vision to engineering execution. We do this through:
--   **Prototype as Specification:** The prototype serves as a living spec, reducing ambiguity for engineering.
--   **Rapid Iteration:** Leverage templates and AI to quickly build and validate product ideas.
--   **Design Consistency:** All prototypes use Snowflake's design system for a consistent user experience.
+![GitHub Comment Integration](docs/images/github-comment-integration.gif)
+*Live collaboration: Leave contextual comments directly on prototypes that automatically sync to GitHub Issues for seamless PM-Engineering handoff*
 
----
+## The Playbook Paradigm Shift
 
-### Why Now?
+Traditional product development creates silos: PMs write specs, designers create mockups, engineers build from scratch. **Playbook changes the game** by turning prototypes into living specifications that bridge all three worlds.
+
+### What Makes Playbook Different
+
+1. **GitHub-Native Feedback Loop**: Comments on prototypes automatically become GitHub Issues. No more screenshot-laden documents or lost Slack threads. Every piece of feedback is tracked, actionable, and lives where engineers work.
+
+2. **No Tool Lock-in**: Unlike proprietary prototyping tools, Playbook outputs standard React code. Use your favorite IDE, deploy anywhere, integrate with any toolchain. You own the code.
+
+3. **Context-Aware Intelligence**: Our comment system automatically detects UI context (wizard steps, modal states, tab selections) without any configuration. Comments stay exactly where they belong, even in complex single-page applications.
+
+4. **From Prototype to Production**: The code you prototype with is production-ready. No throwaway work. Every component follows Snowflake's design system and engineering standards.
+
+### Why This Matters Now
 
 The convergence of AI capabilities and market dynamics makes this the critical moment for a platform like Playbook.
 
@@ -44,14 +54,15 @@ This will start a local server that perfectly mimics the Vercel cloud environmen
 
 To create a new prototype from a template, run `npm run create-prototype <feature-name> <template-name>`.
 
-#### GitHub OAuth Setup (Optional - for commenting system)
+#### GitHub OAuth Setup (For the commenting system)
 
 1. Create a GitHub OAuth App at https://github.com/settings/applications/new
 2. Set Authorization callback URL to `http://localhost:5173` (or your deployment URL)
 3. Create `.env` file:
-   ```
-   VITE_GITHUB_CLIENT_ID=your-client-id
-   ```
+    ```
+    VITE_GITHUB_CLIENT_ID=your-client-id
+    GITHUB_CLIENT_SECRET=your-client-secret
+    ```
 4. For production, add `GITHUB_CLIENT_SECRET` to your Vercel environment variables
 
 <details>
@@ -71,17 +82,27 @@ To create a new prototype from a template, run `npm run create-prototype <featur
 
 Collaborating with the AI is key. Here are the core tactics for effective guidance.
 
-| Tactic | Your Prompt | Why It Works |
+| Tactic | What to Say | Why It Works |
 | :--- | :--- | :--- |
-| **Show, Don't Tell** | "Here's a screenshot. Build this." `[Attach image]` | Eliminates ambiguity on UI/UX. The AI sees exactly what you want. |
-| **Start with Intent** | "I'm building a [UI type] for [feature] to let users [goal]." | Provides context, helping the AI make better architectural choices. |
-| **Give Clear Bug Reports** | "The app crashed after I did X. Here are the logs." `[Paste logs]` | The fastest way to a fix. Logs tell the AI exactly where to look. |
+| **Set Context First** | "Building a wizard for creating Cortex Search services" | AI understands the domain and constraints |
+| **Reference What Exists** | "Similar to the table selector, but for stages" | Reuses patterns, maintains consistency |
+| **Describe User Journey** | "User selects files, configures processing, reviews settings" | Creates intuitive flow |
+| **Specify Visual Details** | "Show selected count in blue badge, disable if none selected" | Results match your vision |
+| **Request Standard Patterns** | "Add loading state while fetching" | Gets production-ready behavior |
 
-➡️ **[View the full AI Prompting Playbook](./PROMPTING_PLAYBOOK.md)** for detailed examples and templates.
+<details>
+<summary>Detailed Examples & Templates</summary>
+
+See [PROMPTING_PLAYBOOK.md](PROMPTING_PLAYBOOK.md) for comprehensive examples, templates, and advanced techniques.
+
+</details>
 
 ---
 
-### Learn More
+### The Playbook Philosophy
 
--   **[Architecture & Roles](./ARCHITECTURE.md)** – Understand the repository structure, roles, and platform philosophy.
--   **What This Is (and Isn't):** This is a tool for creating interactive blueprints, not production code. It's for validating user flows and communicating with engineering, not replacing them.
+-   **Prototype as Specification:** The prototype serves as a living spec, reducing ambiguity for engineering.
+-   **Rapid Iteration:** Leverage templates and AI to quickly build and validate product ideas.
+-   **Design Consistency:** All prototypes use Snowflake's design system for a consistent user experience.
+
+For architecture details and contribution guidelines, see [ARCHITECTURE.md](ARCHITECTURE.md).
