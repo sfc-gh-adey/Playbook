@@ -84,6 +84,7 @@ const initialWizardData: WizardData = {
 function App() {
   const [githubUser, setGithubUser] = useState<any>(null);
   const [githubToken, setGithubToken] = useState<string>('');
+  const [currentWizardStep, setCurrentWizardStep] = useState<string>('');
 
   // Load GitHub user on mount
   useEffect(() => {
@@ -107,7 +108,7 @@ function App() {
       </Navbar>
       <div style={{ paddingTop: '80px' }}> {/* Increased padding for fixed navbar */}
         <Routes>
-          <Route path="/" element={<Wizard />} />
+          <Route path="/" element={<Wizard onStepChange={setCurrentWizardStep} />} />
           <Route path="/service/:serviceName" element={<ServiceLandingPage />} />
           <Route path="/service/:serviceName/playground" element={<PlaygroundPage />} />
         </Routes>
@@ -115,15 +116,16 @@ function App() {
       <CommentSystem 
         githubUser={githubUser}
         githubToken={githubToken}
+        pageContext={currentWizardStep}
       />
     </>
   );
 }
 
-function Wizard() {
-  const [wizardData, setWizardData] = useState<WizardData>(initialWizardData);
-  const [currentStep, setCurrentStep] = useState(1);
+function Wizard({ onStepChange }: { onStepChange: (step: string) => void }) {
   const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [wizardData, setWizardData] = useState<WizardData>(initialWizardData);
 
   const updateWizardData = (updates: Partial<WizardData>) => {
     setWizardData(prev => ({ ...prev, ...updates }));
@@ -133,35 +135,43 @@ function Wizard() {
     setCurrentStep(step);
   };
 
-  // Build steps array based on data source type
+  // Get dynamic steps based on data source type
   const getSteps = () => {
     const baseSteps = [
-      { number: 1, id: 'new-service', title: 'New service', completed: currentStep > 1 },
-      { number: 2, id: 'select-data', title: 'Select data', completed: currentStep > 2 },
+      { id: 1, name: 'New service', completed: currentStep > 1 },
+      { id: 2, name: 'Select data', completed: currentStep > 2 }
     ];
 
     if (wizardData.dataSourceType === 'stage') {
       return [
         ...baseSteps,
-        { number: 3, id: 'choose-pipeline', title: 'PDF data processing', completed: currentStep > 3 },
-        { number: 4, id: 'configure-indexing', title: 'Configure indexing', completed: currentStep > 4 }
+        { id: 3, name: 'Choose processing pipeline', completed: currentStep > 3 },
+        { id: 4, name: 'Configure indexing', completed: currentStep > 4 }
       ];
     } else if (wizardData.dataSourceType === 'table') {
       return [
         ...baseSteps,
-        { number: 3, id: 'select-search-columns', title: 'Select search columns', completed: currentStep > 3 },
-        { number: 4, id: 'select-attributes', title: 'Select attributes', completed: currentStep > 4 },
-        { number: 5, id: 'select-return-columns', title: 'Select columns', completed: currentStep > 5 },
-        { number: 6, id: 'configure-indexing', title: 'Configure indexing', completed: currentStep > 6 },
+        { id: 3, name: 'Select search columns', completed: currentStep > 3 },
+        { id: 4, name: 'Select attributes', completed: currentStep > 4 },
+        { id: 5, name: 'Select columns to return', completed: currentStep > 5 },
+        { id: 6, name: 'Configure indexing', completed: currentStep > 6 }
       ];
     }
-    
+
     // Default steps when no data source is selected
     return baseSteps;
   };
 
   const steps = getSteps();
   const totalSteps = steps.length;
+
+  // Notify parent about step changes
+  useEffect(() => {
+    const currentStepInfo = steps.find(s => s.id === currentStep);
+    if (currentStepInfo) {
+      onStepChange(`Step ${currentStep}: ${currentStepInfo.name}`);
+    }
+  }, [currentStep, wizardData.dataSourceType, onStepChange]); // Added wizardData.dataSourceType to dependencies
 
   const canGoNext = () => {
     switch (currentStep) {
@@ -244,18 +254,18 @@ function Wizard() {
           <nav className="space-y-1">
             {steps.map((step) => (
               <div
-                key={step.number}
+                key={step.id}
                 className={`flex items-center p-3 rounded-md cursor-pointer transition-colors ${
-                  step.number === currentStep
+                  step.id === currentStep
                     ? 'bg-blue-50 border border-blue-200'
                     : step.completed
                     ? 'hover:bg-gray-100'
                     : 'text-gray-400'
                 }`}
-                onClick={() => step.completed || step.number <= currentStep ? goToStep(step.number) : null}
+                onClick={() => step.completed || step.id <= currentStep ? goToStep(step.id) : null}
               >
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium mr-3 ${
-                  step.number === currentStep
+                  step.id === currentStep
                     ? 'bg-blue-600 text-white'
                     : step.completed
                     ? 'bg-green-600 text-white'
@@ -266,17 +276,17 @@ function Wizard() {
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   ) : (
-                    step.number
+                    step.id
                   )}
                 </div>
                 <span className={`text-sm font-medium ${
-                  step.number === currentStep
+                  step.id === currentStep
                     ? 'text-blue-900'
                     : step.completed
                     ? 'text-gray-900'
                     : 'text-gray-400'
                 }`}>
-                  {step.title}
+                  {step.name}
                 </span>
               </div>
             ))}
@@ -304,7 +314,7 @@ function Wizard() {
                   onClick={() => goToStep(currentStep - 1)}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-medium"
                 >
-                  Previous: {steps[currentStep - 2]?.title}
+                  Previous: {steps[currentStep - 2]?.name}
                 </button>
               )}
               
@@ -319,7 +329,7 @@ function Wizard() {
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={!canGoNext()}
               >
-                {currentStep === totalSteps ? 'Create Search Service' : `Next: ${steps[currentStep]?.title || ''}`}
+                {currentStep === totalSteps ? 'Create Search Service' : `Next: ${steps[currentStep]?.name || ''}`}
               </button>
             </div>
           </div>

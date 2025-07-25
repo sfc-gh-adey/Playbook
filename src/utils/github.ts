@@ -29,10 +29,16 @@ export const createGitHubIssue = async (
   pageUrl: string
 ): Promise<number | null> => {
   
+  // Build page description including context
+  let pageDescription = `\`${pageUrl}\``;
+  if (comment.pageContext) {
+    pageDescription += ` (${comment.pageContext})`;
+  }
+  
   const issueBody = `
 ## 💬 Comment from Playbook Prototype
 
-**Page:** \`${pageUrl}\`
+**Page:** ${pageDescription}
 **Author:** @${comment.author}
 **Timestamp:** ${new Date(comment.timestamp).toLocaleString()}
 **Location (X, Y):** (${comment.x}, ${comment.y})

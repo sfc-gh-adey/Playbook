@@ -12,6 +12,7 @@ interface Comment {
   timestamp: Date;
   replies: Reply[];
   pageUrl: string;
+  pageContext?: string; // New field for additional context like wizard step
   githubIssueNumber?: number;
 }
 
@@ -20,6 +21,7 @@ interface LocalComment {
   x: number;
   y: number;
   pageUrl: string;
+  pageContext?: string; // New field
   githubIssueNumber?: number;
 }
 
@@ -38,15 +40,19 @@ interface CommentPin {
 interface CommentSystemProps {
   githubUser?: any;
   githubToken?: string;
+  pageContext?: string; // New prop to receive current page context
 }
 
-const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }) => {
+const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken, pageContext }) => {
   const [isCommentMode, setIsCommentMode] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [activeComment, setActiveComment] = useState<string | null>(null);
   const [showCommentButton, setShowCommentButton] = useState(true);
   const overlayRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+
+  // Create a unique page identifier combining URL and context
+  const currentPageId = `${location.pathname}${pageContext ? `#${pageContext}` : ''}`;
 
   // Load comments from localStorage and fetch from GitHub on mount
   useEffect(() => {
@@ -61,22 +67,27 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
         x: c.x,
         y: c.y,
         pageUrl: c.pageUrl,
+        pageContext: c.pageContext,
         githubIssueNumber: c.githubIssueNumber
       }));
       localStorage.setItem('playbook-comment-markers', JSON.stringify(localComments));
+    } else {
+      localStorage.removeItem('playbook-comment-markers');
     }
   }, [comments]);
 
   const loadComments = async () => {
     const savedMarkers = localStorage.getItem('playbook-comment-markers');
-    if (!savedMarkers) return;
+    if (!savedMarkers) {
+      setComments([]); // Ensure comments are empty if no markers
+      return;
+    }
 
     const localComments: LocalComment[] = JSON.parse(savedMarkers);
     const fullComments: Comment[] = [];
 
     for (const marker of localComments) {
       if (marker.githubIssueNumber && githubToken) {
-        // Fetch the full comment data from GitHub
         const repo = getGitHubRepo();
         if (repo) {
           try {
@@ -93,11 +104,9 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
             if (issueResponse.ok) {
               const issue = await issueResponse.json();
               
-              // Extract comment text from issue body
               const bodyMatch = issue.body.match(/### Comment Content:\s*>\s*(.+?)(?=\n\n---|\n\*This issue)/s);
               const text = bodyMatch ? bodyMatch[1].trim() : '';
               
-              // Fetch replies from issue comments
               const commentsResponse = await fetch(issue.comments_url, {
                 headers: {
                   'Authorization': `Bearer ${githubToken}`,
@@ -128,10 +137,18 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
                 timestamp: new Date(issue.created_at),
                 replies
               });
+            } else {
+              console.error(`Failed to fetch issue ${marker.githubIssueNumber}:`, issueResponse.status);
+              fullComments.push({
+                ...marker,
+                text: `[Failed to load comment: ${issueResponse.status}]`,
+                author: 'Unknown',
+                timestamp: new Date(),
+                replies: []
+              });
             }
           } catch (error) {
-            console.error('Failed to fetch comment from GitHub:', error);
-            // Fall back to local marker without content
+            console.error('Network error fetching comment from GitHub:', error);
             fullComments.push({
               ...marker,
               text: '[Failed to load comment]',
@@ -142,7 +159,6 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
           }
         }
       } else {
-        // No GitHub issue yet, just show the marker
         fullComments.push({
           ...marker,
           text: '',
@@ -158,10 +174,9 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
 
   // Watch for route changes and close active comments
   useEffect(() => {
-    // Close any active comment when navigating to a new page
     setActiveComment(null);
     setIsCommentMode(false);
-  }, [location.pathname]);
+  }, [currentPageId]); // Changed from location.pathname to currentPageId
 
   // Add keyboard shortcut for toggling comment mode
   useEffect(() => {
@@ -178,20 +193,20 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
     };
   }, []);
 
-  // Filter comments for current page
-  const pageComments = comments.filter(c => c.pageUrl === location.pathname);
+  // Filter comments for current page (including context)
+  const pageComments = comments.filter(c => {
+    const commentPageId = `${c.pageUrl}${c.pageContext ? `#${c.pageContext}` : ''}`;
+    return commentPageId === currentPageId;
+  });
 
   const handleCanvasClick = (e: React.MouseEvent) => {
     if (!isCommentMode) return;
     
-    // Prevent event from bubbling
     e.stopPropagation();
     e.preventDefault();
 
     const x = e.clientX;
     const y = e.clientY;
-
-    console.log('Creating comment at:', x, y); // Debug log
 
     const newComment: Comment = {
       id: Date.now().toString(),
@@ -201,7 +216,8 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
       author: githubUser?.login || 'Local User',
       timestamp: new Date(),
       replies: [],
-      pageUrl: location.pathname
+      pageUrl: location.pathname,
+      pageContext: pageContext // Store the current context
     };
 
     setComments([...comments, newComment]);
@@ -270,6 +286,7 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
       x: c.x,
       y: c.y,
       pageUrl: c.pageUrl,
+      pageContext: c.pageContext,
       githubIssueNumber: c.githubIssueNumber
     }));
     localStorage.setItem('playbook-comment-markers', JSON.stringify(localComments));
