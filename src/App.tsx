@@ -106,6 +106,10 @@ function App() {
         <Route path="/service/:serviceName" element={<ServiceLandingPage />} />
         <Route path="/service/:serviceName/playground" element={<PlaygroundPage />} />
       </Routes>
+      {/* Debug: This should always show */}
+      <div style={{ position: 'fixed', bottom: '10px', left: '10px', background: 'yellow', padding: '10px', zIndex: 10000 }}>
+        Debug: App rendered, env: {import.meta.env.VITE_GITHUB_CLIENT_ID || 'NOT SET'}
+      </div>
       <CommentSystem 
         githubUser={githubUser}
         githubToken={githubToken}

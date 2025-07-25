@@ -17,8 +17,17 @@ const GitHubAuth: React.FC<GitHubAuthProps> = ({ onAuthSuccess, clientId }) => {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   // Debug logging
-  console.log('GitHub Auth - Client ID:', clientId);
+  console.log('GitHub Auth component mounted with Client ID:', clientId);
 
+  // Always show something for debugging
+  return (
+    <div className="fixed top-6 right-6" style={{ zIndex: 10001, background: 'red', padding: '20px' }}>
+      <div>GitHub Auth Debug: {clientId}</div>
+    </div>
+  );
+
+  // TEMPORARILY COMMENTED OUT FOR DEBUGGING
+  /*
   // If no client ID, show error
   if (!clientId || clientId === 'your-client-id-here') {
     return (
@@ -29,6 +38,7 @@ const GitHubAuth: React.FC<GitHubAuthProps> = ({ onAuthSuccess, clientId }) => {
       </div>
     );
   }
+  */
 
   useEffect(() => {
     // Check for OAuth callback
