@@ -16,6 +16,20 @@ const GitHubAuth: React.FC<GitHubAuthProps> = ({ onAuthSuccess, clientId }) => {
   const [user, setUser] = useState<GitHubUser | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
+  // Debug logging
+  console.log('GitHub Auth - Client ID:', clientId);
+
+  // If no client ID, show error
+  if (!clientId || clientId === 'your-client-id-here') {
+    return (
+      <div className="fixed top-6 right-6" style={{ zIndex: 9998 }}>
+        <div className="bg-red-100 text-red-700 px-4 py-2 rounded-md">
+          GitHub Client ID not configured
+        </div>
+      </div>
+    );
+  }
+
   useEffect(() => {
     // Check for OAuth callback
     const urlParams = new URLSearchParams(window.location.search);
