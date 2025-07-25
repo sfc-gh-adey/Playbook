@@ -1,204 +1,96 @@
-# 🚀 Snowflake Prototype Base
+# Snowflake Product Prototyping Platform
 
-A rapid prototyping template for building consistent Snowflake UI experiences with reusable components and design patterns.
+**Welcome to the new standard for product innovation at Snowflake.**
 
-## 🎯 Purpose
+This platform is designed for one purpose: to empower Product Managers to build high-fidelity, interactive prototypes that serve as a **living specification** for our engineering teams. Think of it as a bridge between vision and execution—fast, consistent, and always aligned with Snowflake's design language.
 
-This template enables fast iteration on product features with:
-- **Consistent Snowflake design language**
-- **Reusable component library**
-- **Multiple prototype templates**
-- **Rapid deployment capabilities**
+## The New World Order: Our Philosophy
 
-## 🏗️ Architecture
+We are moving away from static mockups and ambiguous requirements. Our new process is built on three core principles:
 
-```
-snowflake-prototype-base/
-├── core/                    # Shared foundation
-│   ├── components/         # Reusable UI components
-│   │   ├── Wizard/        # Wizard shells and navigation
-│   │   ├── Tables/        # Data tables and lists
-│   │   ├── Forms/         # Form inputs and validation
-│   │   └── ...
-│   ├── styles/            # Design tokens and themes
-│   ├── hooks/             # Common React hooks
-│   └── utils/             # Shared utilities
-├── templates/             # Feature-specific starting points
-│   ├── wizard-flow/       # Multi-step configuration flows
-│   ├── data-explorer/     # Data browsing interfaces
-│   ├── service-dashboard/ # Service management panels
-│   └── analytics-view/    # Metrics and reporting
-├── scripts/               # Automation tools
-│   └── create-prototype.js # Prototype generator
-└── src/                   # Current prototype (Cortex Search)
-    ├── components/        # Feature-specific components
-    └── ...
-```
+1.  **Prototype as the Spec:** Your prototype *is* the specification. It communicates the user flow, interactions, and UI with perfect clarity, eliminating guesswork for Engineering.
+2.  **Build, Don't Describe:** Instead of writing lengthy documents, you build the experience. This forces clarity of thought and uncovers edge cases early.
+3.  **Speed and Consistency:** By building with a centrally managed library of Snowflake components, you can launch a new prototype in minutes, not weeks, ensuring every idea looks and feels like a real Snowflake product from day one.
 
-## 🚀 Quick Start
+---
 
-### Creating a New Prototype
+## Who Governs What?
+
+-   **Product Managers (You):** You own the prototype (`src/`). You decide the user flow, the features, and the logic required to create a compelling, interactive spec.
+-   **Product Design:** The Design team owns the `core/` component library. They are the stewards of our design system, ensuring all foundational components (buttons, tables, forms) are pixel-perfect, accessible, and reusable.
+
+---
+
+## Quick Start: Go from Idea to Live Demo in 5 Minutes
+
+Ready to build? Your first prototype is minutes away.
+
+### 1. Generate Your Prototype
+
+Open your terminal and run the prototype generator. You'll give your feature a name and choose a starting template.
 
 ```bash
-# Generate a new prototype from this template
-npm run create-prototype my-new-feature wizard-flow
+# Usage: npm run create-prototype <feature-name> <template-name>
+npm run create-prototype my-amazing-feature wizard-flow
+```
 
-# Navigate and start developing
-cd my-new-feature
+**Available Templates:**
+
+| Template | Description | Best For |
+| :--- | :--- | :--- |
+| `wizard-flow` | A multi-step wizard interface | Setup flows, configurations, onboarding |
+| `data-explorer` | Data browsing and filtering | File browsers, table views, search results |
+| `service-dashboard` | A classic service management panel | Status pages, monitoring, settings |
+
+### 2. Start Developing
+
+Navigate into your new prototype's directory, install dependencies, and start the development server.
+
+```bash
+cd my-amazing-feature
 npm install
 npm run dev
 ```
 
-### Available Templates
-
-| Template | Description | Best For |
-|----------|-------------|----------|
-| `wizard-flow` | Multi-step wizard interfaces | Setup flows, configurations |
-| `data-explorer` | Data browsing and filtering | File browsers, table views |
-| `service-dashboard` | Service management | Status pages, monitoring |
-| `analytics-view` | Charts and metrics | Reporting, analytics |
-
-## 🧩 Core Components
-
-### WizardShell
-```tsx
-import { WizardShell } from '../core/components/Wizard/WizardShell';
-
-<WizardShell
-  title="Create Search Service"
-  steps={steps}
-  currentStep={currentStep}
-  onStepClick={handleStepClick}
-  footer={<NavigationButtons />}
->
-  {children}
-</WizardShell>
-```
-
-### Design Tokens
-```tsx
-import { snowflakeTokens, snowflakeClasses } from '../core/styles/tokens';
-
-// Use consistent colors, spacing, typography
-const primaryColor = snowflakeTokens.colors.primary[600];
-const inputClass = snowflakeClasses.forms.input;
-```
-
-## 📋 Prototype Workflow
-
-### 1. Requirements Gathering
-- Define user flow and key interactions
-- Identify reusable vs. custom components
-- Choose appropriate template
-
-### 2. Rapid Prototyping
-```bash
-# Create prototype in 30 seconds
-npm run create-prototype feature-name template-type
-cd feature-name && npm install && npm run dev
-```
-
-### 3. Iteration & Feedback
-- Share live demo URLs
-- Gather stakeholder feedback
-- Iterate quickly on core flows
-
-### 4. Component Extraction
-- Extract reusable patterns back to core/
-- Update design tokens
-- Document new components
-
-## 🎨 Design System
-
-### Colors
-- Primary: Blue scale for actions and highlights
-- Gray: Neutral scale for text and backgrounds  
-- Status: Green (success), Yellow (warning), Red (error)
-
-### Typography
-- Font: Inter (system fallback)
-- Scales: xs (12px) → 2xl (24px)
-- Weights: Regular (400), Medium (500), Semibold (600)
-
-### Components
-- Consistent spacing and borders
-- Focus states and accessibility
-- Hover animations and transitions
-
-## 🔧 Development
-
-### Available Scripts
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run preview      # Preview production build
-npm run lint         # Run ESLint
-npm run create-prototype # Generate new prototype
-```
-
-### Adding Core Components
-1. Create component in `core/components/`
-2. Export from appropriate index file
-3. Add to design tokens if needed
-4. Document usage patterns
-
-### Template Customization
-1. Modify templates in `templates/` directory
-2. Update `scripts/create-prototype.js` with new templates
-3. Test generation process
-
-## 📦 Current Prototype: Cortex Search
-
-This repository currently contains a **Cortex Search PDF Wizard** prototype featuring:
-
-- ✅ **Unified Wizard**: A single wizard that handles two distinct flows: creating a service from a **Snowflake Table** or from **PDFs in a Stage**.
-- ✅ **Table-Based Search Flow**:
-  - Multi-select search columns with interactive data preview.
-  - Per-column `Text` vs. `Vector` indexing selection.
-  - Separate steps for selecting filterable `Attributes` and `Return Columns`.
-- ✅ **Stage-Based (PDF) Search Flow**:
-  - Two distinct document processing pipelines: **Visual & Complex** and **Text-Heavy**.
-  - **Automated Table Generation**: For the 'Visual & Complex' flow, the wizard now includes a confirmation step that shows the user the powerful, structured table schema (`TEXT`, `VECTOR_MAIN`, etc.) that will be automatically created on their behalf.
-  - **Custom Table Destination**: Users can now specify a custom Database and Schema for this newly generated table.
-- ✅ **Consistent UI**: All screens are built on our reusable component foundation for a consistent Snowflake look and feel.
-
-## 🚀 Future Enhancements
-
-### Planned Features
-- [ ] Storybook integration for component documentation
-- [ ] Automated demo deployment (Vercel/Netlify)
-- [ ] Component testing framework
-- [ ] Design system documentation site
-- [ ] CLI with interactive template selection
-- [ ] Component usage analytics
-
-### Template Roadmap
-- [ ] `admin-panel` - User management interfaces
-- [ ] `data-pipeline` - ETL configuration flows  
-- [ ] `monitoring` - Metrics and alerting dashboards
-- [ ] `onboarding` - User onboarding sequences
-
-## 💡 Best Practices
-
-### Component Design
-- Start with core components, customize as needed
-- Keep prototypes focused on key user flows
-- Document component variations and use cases
-
-### Prototype Management
-- Use descriptive names for prototypes
-- Keep prototypes lightweight and focused
-- Extract patterns back to core regularly
-
-### Feedback Integration
-- Share live demos early and often
-- Document feedback and decisions
-- Iterate quickly on critical paths
+Your browser will open with a live-reloading preview of your prototype. Now, you can start building your user flow in the `src/` directory.
 
 ---
 
-## 🎉 Happy Prototyping!
+## The Rules of Engagement: What This Is (and Isn't)
 
-This foundation enables rapid iteration while maintaining design consistency. Focus on the user experience, and let the tooling handle the infrastructure.
+*   ✅ **This IS a tool for communication.** Its goal is to create an unambiguous spec for Engineering.
+*   ✅ **This IS for validating user flows.** You can put your interactive demo in front of customers and stakeholders to get real feedback.
+*   ✅ **This IS built on real components.** The `core/` library ensures your prototype is visually identical to the final product.
 
-For questions or suggestions, create an issue or reach out to the product team. 
+*   ❌ **This IS NOT production code.** Do not add complex business logic, authentication, or direct API integrations. Keep it simple. The goal is to simulate the experience, not re-implement the backend.
+*   ❌ **This IS NOT a replacement for engineering.** The engineering team will take your living spec and build a robust, scalable, and tested feature. They will reuse `core/` components, but they will write their own feature-specific code.
+
+---
+
+## How It Works: The Architecture
+
+The repository is simple by design:
+
+```
+/
+├── core/              # 🎨 Product Design's territory. The shared component library.
+│   ├── components/    # Reusable UI components (Wizard, Tables, Forms).
+│   └── styles/        # Design tokens, themes, and CSS classes.
+├── templates/         # 🚀 Starting points for new prototypes.
+├── scripts/           # 🛠️ Automation tools (like the prototype generator).
+└── src/               # 🧑‍💻 Your territory. The current prototype you're building.
+```
+
+When you need a new component that feels reusable, file a request with the Product Design team. They will build it, add it to `core/`, and make it available for everyone.
+
+## Available Scripts
+
+```bash
+npm run dev          # Start the development server for your prototype
+npm run build        # Create a production build of your prototype for sharing
+npm run preview      # Preview the production build locally
+npm run lint         # Check your code for style issues
+npm run create-prototype # Generate a new prototype from a template
+```
+
+Happy Prototyping!
