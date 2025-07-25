@@ -1,4 +1,5 @@
 
+import React, { useState } from 'react';
 import { WizardData } from '../App';
 
 const MOCK_COLUMNS = ['DOC_ID', 'TITLE', 'CONTENT', 'CATEGORY', 'SUBCATEGORY', 'TRANSCRIPT_TEXT', 'COLUMN_A', 'COLUMN_B'];

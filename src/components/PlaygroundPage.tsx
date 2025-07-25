@@ -90,7 +90,14 @@ const PlaygroundPage = () => {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState('Query');
-  
+  const [limit, setLimit] = useState(10);
+  const [selectedColumns, setSelectedColumns] = useState<string[]>(['CONTENT', 'TITLE', 'CATEGORY']);
+  const [results, setResults] = useState<any[][]>([[]]);
+  const [filters, setFilters] = useState<Filter[]>([]);
+  const [logicalOperator, setLogicalOperator] = useState<'@and' | '@or'>('@and');
+  const [columnWeights, setColumnWeights] = useState<{[key: string]: number}>({ CONTENT: 1, TITLE: 1, CATEGORY: 1 });
+  const [techniqueBalance, setTechniqueBalance] = useState(50);
+  const [activeConfig, setActiveConfig] = useState('Default');
   
   // Saved configurations
   const [savedConfigs, setSavedConfigs] = useState<{[key: string]: any}>({
@@ -287,6 +294,7 @@ const PlaygroundPage = () => {
                 techniqueBalance={techniqueBalance}
                 setTechniqueBalance={setTechniqueBalance}
                 activeConfig={activeConfig}
+                setActiveConfig={setActiveConfig}
                 onSaveConfig={(name: string, isDefault: boolean) => {
                   // Save current configuration
                   const newConfig = {
@@ -346,20 +354,6 @@ const ServiceSelector = ({ service, setService, label }: { service: string, setS
       <option>CHAT_CUSTOMER_TEST_CSS_B</option>
       <option>PRODUCT_CATALOG_V1</option>
     </select>
-  </div>
-);
-
-
-  <div className="h-full flex items-center justify-center text-center">
-    <div>
-      <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-      </div>
-      <h3 className="text-lg font-medium text-gray-900 mb-2">{serviceName}</h3>
-      <p className="text-gray-500 text-sm">Enter a search query to see results.</p>
-    </div>
   </div>
 );
 
