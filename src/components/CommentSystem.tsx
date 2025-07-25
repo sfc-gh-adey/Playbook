@@ -15,6 +15,14 @@ interface Comment {
   githubIssueNumber?: number;
 }
 
+interface LocalComment {
+  id: string;
+  x: number;
+  y: number;
+  pageUrl: string;
+  githubIssueNumber?: number;
+}
+
 interface Reply {
   id: string;
   text: string;
@@ -40,13 +48,113 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
   const overlayRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
 
-  // Load comments from localStorage on mount
+  // Load comments from localStorage and fetch from GitHub on mount
   useEffect(() => {
-    const savedComments = localStorage.getItem('playbook-comments');
-    if (savedComments) {
-      setComments(JSON.parse(savedComments));
+    loadComments();
+  }, [githubToken]);
+
+  // Save minimal comment data to localStorage whenever comments change
+  useEffect(() => {
+    if (comments.length > 0) {
+      const localComments: LocalComment[] = comments.map(c => ({
+        id: c.id,
+        x: c.x,
+        y: c.y,
+        pageUrl: c.pageUrl,
+        githubIssueNumber: c.githubIssueNumber
+      }));
+      localStorage.setItem('playbook-comment-markers', JSON.stringify(localComments));
     }
-  }, []);
+  }, [comments]);
+
+  const loadComments = async () => {
+    const savedMarkers = localStorage.getItem('playbook-comment-markers');
+    if (!savedMarkers) return;
+
+    const localComments: LocalComment[] = JSON.parse(savedMarkers);
+    const fullComments: Comment[] = [];
+
+    for (const marker of localComments) {
+      if (marker.githubIssueNumber && githubToken) {
+        // Fetch the full comment data from GitHub
+        const repo = getGitHubRepo();
+        if (repo) {
+          try {
+            const issueResponse = await fetch(
+              `https://api.github.com/repos/${repo.owner}/${repo.repo}/issues/${marker.githubIssueNumber}`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${githubToken}`,
+                  'Accept': 'application/vnd.github.v3+json',
+                }
+              }
+            );
+
+            if (issueResponse.ok) {
+              const issue = await issueResponse.json();
+              
+              // Extract comment text from issue body
+              const bodyMatch = issue.body.match(/### Comment Content:\s*>\s*(.+?)(?=\n\n---|\n\*This issue)/s);
+              const text = bodyMatch ? bodyMatch[1].trim() : '';
+              
+              // Fetch replies from issue comments
+              const commentsResponse = await fetch(issue.comments_url, {
+                headers: {
+                  'Authorization': `Bearer ${githubToken}`,
+                  'Accept': 'application/vnd.github.v3+json',
+                }
+              });
+
+              const replies: Reply[] = [];
+              if (commentsResponse.ok) {
+                const issueComments = await commentsResponse.json();
+                for (const comment of issueComments) {
+                  const replyMatch = comment.body.match(/\*\*Reply by @(.+?):\*\*\s*>\s*(.+?)(?=\n\n---|\s*$)/s);
+                  if (replyMatch) {
+                    replies.push({
+                      id: comment.id.toString(),
+                      text: replyMatch[2].trim(),
+                      author: replyMatch[1],
+                      timestamp: new Date(comment.created_at)
+                    });
+                  }
+                }
+              }
+
+              fullComments.push({
+                ...marker,
+                text,
+                author: issue.user.login,
+                timestamp: new Date(issue.created_at),
+                replies
+              });
+            }
+          } catch (error) {
+            console.error('Failed to fetch comment from GitHub:', error);
+            // Fall back to local marker without content
+            fullComments.push({
+              ...marker,
+              text: '[Failed to load comment]',
+              author: 'Unknown',
+              timestamp: new Date(),
+              replies: []
+            });
+          }
+        }
+      } else {
+        // No GitHub issue yet, just show the marker
+        fullComments.push({
+          ...marker,
+          text: '',
+          author: githubUser?.login || 'Anonymous',
+          timestamp: new Date(),
+          replies: []
+        });
+      }
+    }
+
+    setComments(fullComments);
+  };
 
   // Watch for route changes and close active comments
   useEffect(() => {
@@ -54,11 +162,6 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
     setActiveComment(null);
     setIsCommentMode(false);
   }, [location.pathname]);
-
-  // Save comments to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('playbook-comments', JSON.stringify(comments));
-  }, [comments]);
 
   // Filter comments for current page
   const pageComments = comments.filter(c => c.pageUrl === location.pathname);
@@ -141,8 +244,19 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
   };
 
   const deleteComment = (commentId: string) => {
-    setComments(comments.filter(c => c.id !== commentId));
+    const updatedComments = comments.filter(c => c.id !== commentId);
+    setComments(updatedComments);
     setActiveComment(null);
+    
+    // Update localStorage
+    const localComments: LocalComment[] = updatedComments.map(c => ({
+      id: c.id,
+      x: c.x,
+      y: c.y,
+      pageUrl: c.pageUrl,
+      githubIssueNumber: c.githubIssueNumber
+    }));
+    localStorage.setItem('playbook-comment-markers', JSON.stringify(localComments));
   };
 
   return (

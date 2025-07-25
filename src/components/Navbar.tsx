@@ -11,8 +11,9 @@ const Navbar: React.FC<NavbarProps> = ({ children }) => {
         {/* Left side - Logo and title */}
         <div className="flex items-center space-x-3">
           {/* Snowflake Logo */}
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L13.09 5.26L16.26 3.09L15.17 6.35L18.91 6.35L16.74 8.52L20 9.61L16.74 10.7L18.91 12.87L15.17 12.87L16.26 16.13L13.09 13.96L12 17.22L10.91 13.96L7.74 16.13L8.83 12.87L5.09 12.87L7.26 10.7L4 9.61L7.26 8.52L5.09 6.35L8.83 6.35L7.74 3.09L10.91 5.26L12 2Z" fill="#29B5E8"/>
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 0L17.4 4.8L22.2 2.4L20.8 7.2L25.6 7.2L22.2 10.6L27 12L22.2 13.4L25.6 16.8L20.8 16.8L22.2 21.6L17.4 19.2L16 24L14.6 19.2L9.8 21.6L11.2 16.8L6.4 16.8L9.8 13.4L5 12L9.8 10.6L6.4 7.2L11.2 7.2L9.8 2.4L14.6 4.8L16 0Z" fill="#29B5E8"/>
+            <circle cx="16" cy="12" r="2" fill="#29B5E8"/>
           </svg>
           
           {/* Title */}
