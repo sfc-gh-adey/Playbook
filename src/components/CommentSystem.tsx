@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useLocation } from 'react-router-dom';
 
 interface Comment {
   id: string;
@@ -35,6 +36,7 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
   const [activeComment, setActiveComment] = useState<string | null>(null);
   const [showCommentButton, setShowCommentButton] = useState(true);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
 
   // Load comments from localStorage on mount
   useEffect(() => {
@@ -44,13 +46,20 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
     }
   }, []);
 
+  // Watch for route changes and close active comments
+  useEffect(() => {
+    // Close any active comment when navigating to a new page
+    setActiveComment(null);
+    setIsCommentMode(false);
+  }, [location.pathname]);
+
   // Save comments to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('playbook-comments', JSON.stringify(comments));
   }, [comments]);
 
   // Filter comments for current page
-  const pageComments = comments.filter(c => c.pageUrl === window.location.pathname);
+  const pageComments = comments.filter(c => c.pageUrl === location.pathname);
 
   const handleCanvasClick = (e: React.MouseEvent) => {
     if (!isCommentMode) return;
@@ -72,7 +81,7 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
       author: githubUser?.name || githubUser?.login || 'Anonymous User',
       timestamp: new Date(),
       replies: [],
-      pageUrl: window.location.pathname
+      pageUrl: location.pathname
     };
 
     setComments([...comments, newComment]);
@@ -136,6 +145,11 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
               {pageComments.length > 0 && !isCommentMode && (
                 <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
                   {pageComments.length}
+                </span>
+              )}
+              {comments.length > pageComments.length && !isCommentMode && (
+                <span className="text-xs text-gray-500 ml-1">
+                  ({comments.length} total)
                 </span>
               )}
             </div>
@@ -221,7 +235,15 @@ const CommentPin: React.FC<{
         >
           {/* Header */}
           <div className="flex items-center justify-between p-3 border-b">
-            <h3 className="font-medium text-gray-900">Comment Thread</h3>
+            <div>
+              <h3 className="font-medium text-gray-900">Comment Thread</h3>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {comment.pageUrl === '/' ? 'Wizard' : 
+                 comment.pageUrl.includes('playground') ? 'Playground' :
+                 comment.pageUrl.includes('service') ? 'Service Page' :
+                 comment.pageUrl}
+              </p>
+            </div>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600"
