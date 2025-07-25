@@ -365,6 +365,7 @@ const CommentPin: React.FC<{
   const [replyText, setReplyText] = useState('');
   const [isEditing, setIsEditing] = useState(!comment.text);
   const [editText, setEditText] = useState(comment.text || '');
+  const [isResolving, setIsResolving] = useState(false);
 
   const handleSendComment = () => {
     if (editText.trim()) {
@@ -380,63 +381,127 @@ const CommentPin: React.FC<{
     }
   };
 
+  const handleResolve = async () => {
+    if (!comment.githubIssueNumber) return;
+    
+    setIsResolving(true);
+    const githubToken = localStorage.getItem('github-token');
+    const repo = getGitHubRepo();
+    
+    if (githubToken && repo) {
+      try {
+        // Close the GitHub issue
+        const response = await fetch(
+          `https://api.github.com/repos/${repo.owner}/${repo.repo}/issues/${comment.githubIssueNumber}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${githubToken}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/vnd.github.v3+json',
+            },
+            body: JSON.stringify({
+              state: 'closed',
+              state_reason: 'completed'
+            })
+          }
+        );
+
+        if (response.ok) {
+          // Delete the comment locally
+          onDelete(comment.id);
+        } else {
+          console.error('Failed to close GitHub issue');
+          alert('Failed to resolve comment. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error resolving comment:', error);
+        alert('Error resolving comment. Please try again.');
+      }
+    }
+    setIsResolving(false);
+  };
+
   return createPortal(
     <>
-      {/* Comment Pin */}
+      {/* Comment Pin - Modern design */}
       <div
         className={`
-          fixed w-8 h-8 rounded-full cursor-pointer transform -translate-x-1/2 -translate-y-1/2
-          transition-all hover:scale-110 shadow-lg
-          ${isActive ? 'bg-[#29B5E8] ring-4 ring-[#29B5E8] ring-opacity-30' : 'bg-[#0073E6] hover:bg-[#29B5E8]'}
+          fixed w-10 h-10 rounded-full cursor-pointer transform -translate-x-1/2 -translate-y-1/2
+          transition-all duration-200 hover:scale-110 
+          ${isActive 
+            ? 'bg-gradient-to-br from-[#29B5E8] to-[#0073E6] shadow-lg ring-4 ring-[#29B5E8] ring-opacity-30' 
+            : 'bg-gradient-to-br from-[#29B5E8] to-[#0073E6] shadow-md hover:shadow-lg'
+          }
         `}
         style={{ left: comment.x, top: comment.y, zIndex: 1002 }}
         onClick={onActivate}
       >
-        <span className="flex items-center justify-center h-full text-white text-sm font-semibold">
+        <span className="flex items-center justify-center h-full text-white text-sm font-bold">
           {comment.replies.length + (comment.text ? 1 : 0)}
         </span>
       </div>
 
-      {/* Comment Thread */}
+      {/* Comment Thread - Modern card design */}
       {isActive && (
         <div
-          className="fixed bg-white rounded-lg shadow-2xl border border-gray-200"
+          className="fixed bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden"
           style={{ 
-            left: Math.min(comment.x + 20, window.innerWidth - 360),
-            top: Math.min(comment.y, window.innerHeight - 450),
-            width: '350px',
-            maxHeight: '450px',
-            zIndex: 1003
+            left: Math.min(comment.x + 20, window.innerWidth - 380),
+            top: Math.min(comment.y, window.innerHeight - 500),
+            width: '380px',
+            maxHeight: '500px',
+            zIndex: 1003,
+            backdropFilter: 'blur(10px)'
           }}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-gray-50 rounded-t-lg">
+          {/* Header - Glassmorphism effect */}
+          <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-gray-50 to-gray-100/80 backdrop-blur-sm border-b border-gray-200">
             <div>
-              <h3 className="font-semibold text-gray-900">Comment Thread</h3>
-              <p className="text-xs text-gray-500 mt-0.5">
+              <h3 className="font-semibold text-gray-900 text-lg">Comment Thread</h3>
+              <p className="text-xs text-gray-600 mt-0.5 flex items-center gap-1">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
                 {comment.pageUrl === '/' ? 'Wizard' : 
-                 comment.pageUrl.includes('playground') ? 'Playground' :
-                 comment.pageUrl.includes('service') ? 'Service Page' :
-                 comment.pageUrl}
+                comment.pageUrl.includes('playground') ? 'Playground' :
+                comment.pageUrl.includes('service') ? 'Service Page' :
+                comment.pageUrl}
               </p>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               {comment.githubIssueNumber && (
                 <a 
                   href={`https://github.com/${getGitHubRepo()?.owner}/${getGitHubRepo()?.repo}/issues/${comment.githubIssueNumber}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   title="View on GitHub"
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-500 hover:text-gray-700 transition-colors p-1.5 hover:bg-gray-200 rounded-lg"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                   </svg>
                 </a>
               )}
+              {comment.text && !isEditing && comment.githubIssueNumber && (
+                <button
+                  onClick={handleResolve}
+                  disabled={isResolving}
+                  className="text-green-600 hover:text-green-700 transition-colors p-1.5 hover:bg-green-50 rounded-lg disabled:opacity-50"
+                  title="Resolve comment"
+                >
+                  {isResolving ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-green-600"></div>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </button>
+              )}
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 p-1"
+                className="text-gray-500 hover:text-gray-700 transition-colors p-1.5 hover:bg-gray-200 rounded-lg"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -445,32 +510,37 @@ const CommentPin: React.FC<{
             </div>
           </div>
 
-          {/* Comments */}
-          <div className="overflow-y-auto" style={{ maxHeight: '280px' }}>
+          {/* Comments with modern styling */}
+          <div className="overflow-y-auto" style={{ maxHeight: '320px' }}>
             {/* Original Comment */}
             {(comment.text || isEditing) && (
-              <div className="p-4 border-b">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-semibold text-gray-900">{comment.author}</span>
-                    <span className="text-xs text-gray-500">
-                      {new Date(comment.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+              <div className="p-5 border-b border-gray-100">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-[#29B5E8] to-[#0073E6] rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                      {comment.author.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <span className="text-sm font-semibold text-gray-900">{comment.author}</span>
+                      <span className="text-xs text-gray-500 ml-2">
+                        {new Date(comment.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
                   </div>
                   {!isEditing && (
                     <button
                       onClick={() => onDelete(comment.id)}
-                      className="text-xs text-red-600 hover:text-red-700"
+                      className="text-xs text-red-500 hover:text-red-600 transition-colors px-2 py-1 hover:bg-red-50 rounded"
                     >
                       Delete
                     </button>
                   )}
                 </div>
                 {isEditing ? (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <textarea
                       autoFocus
-                      className="w-full p-3 border border-gray-300 rounded-md text-sm resize-none focus:ring-2 focus:ring-[#29B5E8] focus:border-transparent"
+                      className="w-full p-3 border border-gray-200 rounded-lg text-sm resize-none focus:ring-2 focus:ring-[#29B5E8] focus:border-transparent transition-all"
                       placeholder="Add your comment..."
                       value={editText}
                       onChange={(e) => setEditText(e.target.value)}
@@ -480,42 +550,45 @@ const CommentPin: React.FC<{
                       <button
                         onClick={handleSendComment}
                         disabled={!editText.trim()}
-                        className="px-4 py-2 bg-[#0073E6] text-white rounded-md hover:bg-[#0059B3] disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                        className="px-4 py-2 bg-gradient-to-r from-[#29B5E8] to-[#0073E6] text-white rounded-lg hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                       >
                         Send
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <>
-                    <p className="text-sm text-gray-700 mb-2">{comment.text}</p>
-                  </>
+                  <p className="text-sm text-gray-700 leading-relaxed">{comment.text}</p>
                 )}
               </div>
             )}
 
-            {/* Replies */}
-            {comment.replies.map(reply => (
-              <div key={reply.id} className="p-4 border-t bg-gray-50">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-semibold text-gray-900">{reply.author}</span>
-                    <span className="text-xs text-gray-500">
-                      {new Date(reply.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+            {/* Replies with alternating background */}
+            {comment.replies.map((reply, index) => (
+              <div key={reply.id} className={`p-5 border-b border-gray-50 ${index % 2 === 0 ? 'bg-gray-50/50' : 'bg-white'}`}>
+                <div className="flex items-start gap-2 mb-2">
+                  <div className="w-7 h-7 bg-gray-300 rounded-full flex items-center justify-center text-gray-700 font-semibold text-xs">
+                    {reply.author.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-gray-900">{reply.author}</span>
+                      <span className="text-xs text-gray-500">
+                        {new Date(reply.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700 mt-1 leading-relaxed">{reply.text}</p>
                   </div>
                 </div>
-                <p className="text-sm text-gray-700">{reply.text}</p>
               </div>
             ))}
           </div>
 
-          {/* Reply Input */}
+          {/* Reply Input with modern design */}
           {comment.text && !isEditing && (
-            <div className="p-4 border-t bg-gray-50 rounded-b-lg">
-              <div className="space-y-2">
+            <div className="p-5 bg-gray-50/50 border-t border-gray-100">
+              <div className="space-y-3">
                 <textarea
-                  className="w-full p-3 border border-gray-300 rounded-md text-sm resize-none focus:ring-2 focus:ring-[#29B5E8] focus:border-transparent"
+                  className="w-full p-3 bg-white border border-gray-200 rounded-lg text-sm resize-none focus:ring-2 focus:ring-[#29B5E8] focus:border-transparent transition-all"
                   placeholder="Add a reply..."
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
@@ -525,7 +598,7 @@ const CommentPin: React.FC<{
                   <button
                     onClick={handleSendReply}
                     disabled={!replyText.trim()}
-                    className="px-4 py-2 bg-[#0073E6] text-white rounded-md hover:bg-[#0059B3] disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    className="px-4 py-2 bg-gradient-to-r from-[#29B5E8] to-[#0073E6] text-white rounded-lg hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   >
                     Reply
                   </button>
