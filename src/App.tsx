@@ -11,6 +11,7 @@ import ServiceLandingPage from './components/ServiceLandingPage.tsx';
 import PlaygroundPage from './components/PlaygroundPage.tsx';
 import CommentSystem from './components/CommentSystem.tsx';
 import GitHubAuth from './components/GitHubAuth.tsx';
+import Navbar from './components/Navbar.tsx';
 import './App.css';
 
 
@@ -101,17 +102,19 @@ function App() {
 
   return (
     <>
-      <Routes>
-        <Route path="/" element={<Wizard />} />
-        <Route path="/service/:serviceName" element={<ServiceLandingPage />} />
-        <Route path="/service/:serviceName/playground" element={<PlaygroundPage />} />
-      </Routes>
+      <Navbar>
+        <GitHubAuth onAuthSuccess={handleAuthSuccess} />
+      </Navbar>
+      <div style={{ paddingTop: '56px' }}> {/* Add padding for fixed navbar */}
+        <Routes>
+          <Route path="/" element={<Wizard />} />
+          <Route path="/service/:serviceName" element={<ServiceLandingPage />} />
+          <Route path="/service/:serviceName/playground" element={<PlaygroundPage />} />
+        </Routes>
+      </div>
       <CommentSystem 
         githubUser={githubUser}
         githubToken={githubToken}
-      />
-      <GitHubAuth 
-        onAuthSuccess={handleAuthSuccess}
       />
     </>
   );

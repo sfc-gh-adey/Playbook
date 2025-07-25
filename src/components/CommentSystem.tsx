@@ -149,7 +149,7 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
     <>
       {/* Floating Comment Button */}
       {showCommentButton && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-6 right-6 z-40">
           <button
             onClick={() => {
               console.log('Comment button clicked, current mode:', isCommentMode);
@@ -158,8 +158,8 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
             className={`
               px-4 py-3 rounded-full shadow-lg transition-all transform hover:scale-105
               ${isCommentMode 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                ? 'bg-[#29B5E8] text-white' 
+                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
               }
             `}
           >
@@ -173,7 +173,7 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
                 {isCommentMode ? 'Click to comment' : 'Comments'}
               </span>
               {pageComments.length > 0 && !isCommentMode && (
-                <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
+                <span className="bg-[#0073E6] text-white text-xs px-2 py-0.5 rounded-full">
                   {pageComments.length}
                 </span>
               )}
@@ -234,6 +234,21 @@ const CommentPin: React.FC<{
 }> = ({ comment, isActive, onActivate, onClose, onUpdate, onReply, onDelete }) => {
   const [replyText, setReplyText] = useState('');
   const [isEditing, setIsEditing] = useState(!comment.text);
+  const [editText, setEditText] = useState(comment.text || '');
+
+  const handleSendComment = () => {
+    if (editText.trim()) {
+      onUpdate(comment.id, editText.trim());
+      setIsEditing(false);
+    }
+  };
+
+  const handleSendReply = () => {
+    if (replyText.trim()) {
+      onReply(comment.id, replyText.trim());
+      setReplyText('');
+    }
+  };
 
   return createPortal(
     <>
@@ -241,13 +256,13 @@ const CommentPin: React.FC<{
       <div
         className={`
           fixed w-8 h-8 rounded-full cursor-pointer transform -translate-x-1/2 -translate-y-1/2
-          transition-all hover:scale-110 z-50
-          ${isActive ? 'bg-blue-600 ring-4 ring-blue-200' : 'bg-blue-500 hover:bg-blue-600'}
+          transition-all hover:scale-110 z-50 shadow-lg
+          ${isActive ? 'bg-[#29B5E8] ring-4 ring-[#29B5E8] ring-opacity-30' : 'bg-[#0073E6] hover:bg-[#29B5E8]'}
         `}
         style={{ left: comment.x, top: comment.y }}
         onClick={onActivate}
       >
-        <span className="flex items-center justify-center h-full text-white text-sm font-bold">
+        <span className="flex items-center justify-center h-full text-white text-sm font-semibold">
           {comment.replies.length + (comment.text ? 1 : 0)}
         </span>
       </div>
@@ -255,92 +270,104 @@ const CommentPin: React.FC<{
       {/* Comment Thread */}
       {isActive && (
         <div
-          className="fixed bg-white rounded-lg shadow-xl border border-gray-200 z-50"
+          className="fixed bg-white rounded-lg shadow-2xl border border-gray-200 z-50"
           style={{ 
-            left: Math.min(comment.x + 20, window.innerWidth - 320),
-            top: Math.min(comment.y, window.innerHeight - 400),
-            width: '300px',
-            maxHeight: '400px'
+            left: Math.min(comment.x + 20, window.innerWidth - 360),
+            top: Math.min(comment.y, window.innerHeight - 450),
+            width: '350px',
+            maxHeight: '450px'
           }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-3 border-b">
+          <div className="flex items-center justify-between p-4 border-b bg-gray-50 rounded-t-lg">
             <div>
-              <h3 className="font-medium text-gray-900">Comment Thread</h3>
+              <h3 className="font-semibold text-gray-900">Comment Thread</h3>
               <p className="text-xs text-gray-500 mt-0.5">
-                on page: {comment.pageUrl === '/' ? 'Wizard' : 
+                {comment.pageUrl === '/' ? 'Wizard' : 
                  comment.pageUrl.includes('playground') ? 'Playground' :
                  comment.pageUrl.includes('service') ? 'Service Page' :
                  comment.pageUrl}
               </p>
             </div>
-            {comment.githubIssueNumber && (
-              <a 
-                href={`https://github.com/${getGitHubRepo()?.owner}/${getGitHubRepo()?.repo}/issues/${comment.githubIssueNumber}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="View on GitHub"
-                className="text-gray-400 hover:text-gray-600"
+            <div className="flex items-center space-x-2">
+              {comment.githubIssueNumber && (
+                <a 
+                  href={`https://github.com/${getGitHubRepo()?.owner}/${getGitHubRepo()?.repo}/issues/${comment.githubIssueNumber}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="View on GitHub"
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                </a>
+              )}
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 p-1"
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-              </a>
-            )}
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+              </button>
+            </div>
           </div>
 
           {/* Comments */}
-          <div className="overflow-y-auto" style={{ maxHeight: '250px' }}>
+          <div className="overflow-y-auto" style={{ maxHeight: '280px' }}>
             {/* Original Comment */}
             {(comment.text || isEditing) && (
-              <div className="p-3 border-b">
-                <div className="flex items-start justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-900">{comment.author}</span>
-                  <button
-                    onClick={() => onDelete(comment.id)}
-                    className="text-xs text-red-600 hover:text-red-700"
-                  >
-                    Delete
-                  </button>
+              <div className="p-4 border-b">
+                <div className="flex items-start justify-between mb-2">
+                  <span className="text-sm font-semibold text-gray-900">{comment.author}</span>
+                  {!isEditing && (
+                    <button
+                      onClick={() => onDelete(comment.id)}
+                      className="text-xs text-red-600 hover:text-red-700"
+                    >
+                      Delete
+                    </button>
+                  )}
                 </div>
                 {isEditing ? (
-                  <textarea
-                    autoFocus
-                    className="w-full p-2 border rounded text-sm resize-none"
-                    placeholder="Add your comment..."
-                    value={comment.text}
-                    onChange={(e) => onUpdate(comment.id, e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        setIsEditing(false);
-                      }
-                    }}
-                  />
+                  <div className="space-y-2">
+                    <textarea
+                      autoFocus
+                      className="w-full p-3 border border-gray-300 rounded-md text-sm resize-none focus:ring-2 focus:ring-[#29B5E8] focus:border-transparent"
+                      placeholder="Add your comment..."
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      rows={3}
+                    />
+                    <div className="flex justify-end">
+                      <button
+                        onClick={handleSendComment}
+                        disabled={!editText.trim()}
+                        className="px-4 py-2 bg-[#0073E6] text-white rounded-md hover:bg-[#0059B3] disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                      >
+                        Send
+                      </button>
+                    </div>
+                  </div>
                 ) : (
-                  <p className="text-sm text-gray-700">{comment.text}</p>
+                  <>
+                    <p className="text-sm text-gray-700 mb-2">{comment.text}</p>
+                    <span className="text-xs text-gray-500">
+                      {new Date(comment.timestamp).toLocaleString()}
+                    </span>
+                  </>
                 )}
-                <span className="text-xs text-gray-500">
-                  {new Date(comment.timestamp).toLocaleString()}
-                </span>
               </div>
             )}
 
             {/* Replies */}
             {comment.replies.map(reply => (
-              <div key={reply.id} className="p-3 border-b bg-gray-50">
-                <div className="flex items-start justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-900">{reply.author}</span>
+              <div key={reply.id} className="p-4 border-b bg-gray-50">
+                <div className="flex items-start justify-between mb-2">
+                  <span className="text-sm font-semibold text-gray-900">{reply.author}</span>
                 </div>
-                <p className="text-sm text-gray-700">{reply.text}</p>
+                <p className="text-sm text-gray-700 mb-2">{reply.text}</p>
                 <span className="text-xs text-gray-500">
                   {new Date(reply.timestamp).toLocaleString()}
                 </span>
@@ -349,34 +376,28 @@ const CommentPin: React.FC<{
           </div>
 
           {/* Reply Input */}
-          <div className="p-3">
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                className="flex-1 px-3 py-2 border rounded-md text-sm"
-                placeholder="Add a reply..."
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && replyText.trim()) {
-                    onReply(comment.id, replyText);
-                    setReplyText('');
-                  }
-                }}
-              />
-              <button
-                onClick={() => {
-                  if (replyText.trim()) {
-                    onReply(comment.id, replyText);
-                    setReplyText('');
-                  }
-                }}
-                className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
-              >
-                Reply
-              </button>
+          {comment.text && !isEditing && (
+            <div className="p-4 border-t bg-gray-50 rounded-b-lg">
+              <div className="space-y-2">
+                <textarea
+                  className="w-full p-3 border border-gray-300 rounded-md text-sm resize-none focus:ring-2 focus:ring-[#29B5E8] focus:border-transparent"
+                  placeholder="Add a reply..."
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  rows={2}
+                />
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleSendReply}
+                    disabled={!replyText.trim()}
+                    className="px-4 py-2 bg-[#0073E6] text-white rounded-md hover:bg-[#0059B3] disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                  >
+                    Reply
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </>,
