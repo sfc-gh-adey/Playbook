@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { WizardData } from '../App';
 
 interface Props {

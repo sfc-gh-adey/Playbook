@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+
 import { WizardData } from '../App';
 
 interface Props {

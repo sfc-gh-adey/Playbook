@@ -57,7 +57,7 @@ const mockResultsA: SearchResult[] = [
   },
 ];
 
-const mockResultsB: SearchResult[] = [
+
   {
     DOC_ID: "doc-xyz-789",
     TITLE: "Financial_Report_Q1_2024.pdf",
@@ -100,24 +100,14 @@ const mockResultsB: SearchResult[] = [
   }
 ];
 
-const availableServices = [
+
   'CHAT_CUSTOMER_TEST_CSS_A',
   'CHAT_CUSTOMER_TEST_CSS_B',
   'PRODUCT_CATALOG_V1',
   'FINANCIAL_DOCS_SERVICE',
 ];
 
-const allColumns = [
-  { name: 'CONTENT', type: 'Search column' },
-  { name: 'DOC_ID', type: 'Attribute column' },
-  { name: 'TITLE', type: 'Attribute column' },
-  { name: 'CATEGORY', type: 'Attribute column' },
-  { name: 'SUBCATEGORY', type: 'Attribute column' },
-  { name: 'AUTHORS', type: 'Attribute column' },
-  { name: 'BRAND', type: 'Attribute column' },
-  { name: 'PRICE', type: 'Attribute column' },
-  { name: 'RATING', type: 'Attribute column' },
-];
+
 
 interface QueryPanelProps {
   limit: number;
@@ -152,20 +142,7 @@ const PlaygroundPage = () => {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState('Query');
-  const [comparisonServices, setComparisonServices] = useState([serviceName || 'CHAT_CUSTOMER_TEST_CSS_A']);
-  const [results, setResults] = useState<any[][]>([[]]);
   
-  // State for all configurable parameters
-  const [limit, setLimit] = useState(10);
-  const [selectedColumns, setSelectedColumns] = useState(['TITLE', 'CONTENT']);
-  const [columnWeights, setColumnWeights] = useState<{ [key: string]: number }>({ CONTENT: 1, TITLE: 1 });
-  const [techniqueBalance, setTechniqueBalance] = useState(50);
-  const [logicalOperator, setLogicalOperator] = useState<'@and' | '@or'>('@and');
-  const [activeConfig, setActiveConfig] = useState('Default');
-  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
-  const [filters, setFilters] = useState<Filter[]>([
-    { id: 1, column: 'CATEGORY', operator: '@eq', value: 'Technology', negate: false }
-  ]);
   
   // Saved configurations
   const [savedConfigs, setSavedConfigs] = useState<{[key: string]: any}>({
@@ -362,7 +339,6 @@ const PlaygroundPage = () => {
                 techniqueBalance={techniqueBalance}
                 setTechniqueBalance={setTechniqueBalance}
                 activeConfig={activeConfig}
-                setActiveConfig={setActiveConfig}
                 onSaveConfig={(name: string, isDefault: boolean) => {
                   // Save current configuration
                   const newConfig = {
@@ -425,7 +401,7 @@ const ServiceSelector = ({ service, setService, label }: { service: string, setS
   </div>
 );
 
-const InitialState = ({ serviceName }: { serviceName: string }) => (
+
   <div className="h-full flex items-center justify-center text-center">
     <div>
       <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">

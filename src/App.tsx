@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+
 import NewServicePage from './components/NewServicePage.tsx';
 import SelectDataPage from './components/SelectDataPage.tsx';
 import ChooseProcessingPipelinePage from './components/ChooseProcessingPipelinePage.tsx';
@@ -11,45 +11,25 @@ import ServiceLandingPage from './components/ServiceLandingPage.tsx';
 import PlaygroundPage from './components/PlaygroundPage.tsx';
 import './App.css';
 
+
 export interface WizardData {
-  // Step 1: New service
   serviceName: string;
   database: string;
   schema: string;
   warehouse: string;
-  
-  // Step 2: Select data source
-  dataSourceType: 'table' | 'stage' | null;
-  stagePath: string;
+  dataSourceType: 'table' | 'stage' | '';
   selectedTable: string;
-  selectedFiles: string[];
-  enableIncrementalUpdates: boolean;
-  
-  // Step 3 (Table Flow): Select search columns
-  searchColumns: { name: string; isText: boolean; isVector: boolean; }[];
-
-  // Step 4 (Table Flow): Select attribute columns
+  selectedFiles: File[];
+  searchColumns: { name: string; type: 'text' | 'vector' }[];
   attributeColumns: string[];
-
-  // Step 5 (Table Flow): Select columns to return
   returnColumns: string[];
-
-  // Step 4 (Stage Flow): Generated Table Destination
+  pipelineType: 'visual' | 'text' | '';
   generatedTableDatabase: string;
   generatedTableSchema: string;
-
-  // Step 3 (Stage Flow): Choose processing pipeline
-  pipelineType: 'visual' | 'text' | null;
-  advancedDualVector: boolean;
-  advancedHeadingChunk: boolean;
-  
-  // Step 4: Select metadata
-  includeMetadata: string[];
-  
-  // Step 5: Configure indexing
   targetLag: string;
   embeddingModel: string;
   indexingWarehouse: string;
+  contentType: 'table' | 'pdf' | '';
 }
 
 const initialWizardData: WizardData = {
@@ -57,24 +37,21 @@ const initialWizardData: WizardData = {
   database: '',
   schema: '',
   warehouse: '',
-  dataSourceType: null,
-  stagePath: '',
+  dataSourceType: '',
   selectedTable: '',
   selectedFiles: [],
-  enableIncrementalUpdates: false,
   searchColumns: [],
   attributeColumns: [],
   returnColumns: [],
-  pipelineType: null,
-  advancedDualVector: false,
-  advancedHeadingChunk: false,
-  includeMetadata: [],
-  targetLag: '1 hour',
-  embeddingModel: 'snowflake-arctic-embed-m-v1.5',
-  indexingWarehouse: '',
+  pipelineType: '',
   generatedTableDatabase: '',
-  generatedTableSchema: ''
+  generatedTableSchema: '',
+  targetLag: '',
+  embeddingModel: '',
+  indexingWarehouse: '',
+  contentType: '',
 };
+
 
 function App() {
   return (

@@ -1,5 +1,5 @@
 {
-  "name": "snowflake-prototype-base",
+  "name": "playbook",
   "version": "1.0.0",
   "description": "Base template for rapid Snowflake UI prototypes",
   "type": "module",
