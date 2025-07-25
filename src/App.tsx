@@ -105,7 +105,7 @@ function App() {
       <Navbar>
         <GitHubAuth onAuthSuccess={handleAuthSuccess} />
       </Navbar>
-      <div style={{ paddingTop: '80px' }}> {/* Increased padding for fixed navbar */}
+      <div style={{ paddingTop: '72px' }}> {/* Adjusted padding for h-16 navbar */}
         <Routes>
           <Route path="/" element={<Wizard />} />
           <Route path="/service/:serviceName" element={<ServiceLandingPage />} />

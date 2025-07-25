@@ -7,22 +7,19 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ children }) => {
   return (
-    <nav className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200" style={{ zIndex: 1000 }}>
+    <nav className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200" style={{ zIndex: 1000 }}>
       <div className="h-full px-6 flex items-center justify-between">
         {/* Left side - Logo and title */}
-        <div className="flex items-center space-x-3">
-          {/* Snowflake Logo */}
+        <div className="flex items-center">
+          {/* Snowflake Logo - includes "Snowflake" text */}
           <img 
             src={snowflakeLogo} 
             alt="Snowflake" 
-            className="h-8 w-auto"
+            className="h-8 w-auto mr-2"
           />
           
-          {/* Title */}
-          <div className="flex items-center">
-            <span className="text-lg font-semibold text-gray-900">Snowflake</span>
-            <span className="text-lg font-normal text-gray-600 ml-1">Playbook</span>
-          </div>
+          {/* Playbook text */}
+          <span className="text-lg font-normal text-gray-600">Playbook</span>
         </div>
 
         {/* Center - Keyboard shortcut hint */}
