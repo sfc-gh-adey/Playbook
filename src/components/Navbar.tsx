@@ -1,5 +1,5 @@
 import React from 'react';
-import snowflakeLogo from '../assets/snowflake-logo.png';
+import snowflakeLogo from '../assets/snowflake-logo-final.png';
 
 interface NavbarProps {
   children?: React.ReactNode;
