@@ -111,6 +111,7 @@ function App() {
         githubToken={githubToken}
       />
       <GitHubAuth 
+        clientId={import.meta.env.VITE_GITHUB_CLIENT_ID || 'Ov23liE61Pl2AubDldYI'}
         onAuthSuccess={handleAuthSuccess}
       />
     </>
