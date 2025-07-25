@@ -149,7 +149,7 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
     <>
       {/* Floating Comment Button */}
       {showCommentButton && (
-        <div className="fixed bottom-6 right-6 z-40">
+        <div className="fixed bottom-6 right-6" style={{ zIndex: 1001 }}>
           <button
             onClick={() => {
               console.log('Comment button clicked, current mode:', isCommentMode);
@@ -194,7 +194,7 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
           className="fixed inset-0 cursor-crosshair"
           style={{ 
             backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            zIndex: 9999 
+            zIndex: 1004 
           }}
           onClick={handleCanvasClick}
         >
@@ -256,10 +256,10 @@ const CommentPin: React.FC<{
       <div
         className={`
           fixed w-8 h-8 rounded-full cursor-pointer transform -translate-x-1/2 -translate-y-1/2
-          transition-all hover:scale-110 z-50 shadow-lg
+          transition-all hover:scale-110 shadow-lg
           ${isActive ? 'bg-[#29B5E8] ring-4 ring-[#29B5E8] ring-opacity-30' : 'bg-[#0073E6] hover:bg-[#29B5E8]'}
         `}
-        style={{ left: comment.x, top: comment.y }}
+        style={{ left: comment.x, top: comment.y, zIndex: 1002 }}
         onClick={onActivate}
       >
         <span className="flex items-center justify-center h-full text-white text-sm font-semibold">
@@ -270,12 +270,13 @@ const CommentPin: React.FC<{
       {/* Comment Thread */}
       {isActive && (
         <div
-          className="fixed bg-white rounded-lg shadow-2xl border border-gray-200 z-50"
+          className="fixed bg-white rounded-lg shadow-2xl border border-gray-200"
           style={{ 
             left: Math.min(comment.x + 20, window.innerWidth - 360),
             top: Math.min(comment.y, window.innerHeight - 450),
             width: '350px',
-            maxHeight: '450px'
+            maxHeight: '450px',
+            zIndex: 1003
           }}
         >
           {/* Header */}
