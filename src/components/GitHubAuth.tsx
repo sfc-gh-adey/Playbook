@@ -9,26 +9,12 @@ interface GitHubUser {
 
 interface GitHubAuthProps {
   onAuthSuccess: (user: GitHubUser, token: string) => void;
-  clientId: string; // You'll need to register an OAuth app on GitHub
 }
 
-const GitHubAuth: React.FC<GitHubAuthProps> = ({ onAuthSuccess, clientId }) => {
+const GitHubAuth: React.FC<GitHubAuthProps> = ({ onAuthSuccess }) => {
   const [user, setUser] = useState<GitHubUser | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
-
-  // Debug logging
-  console.log('GitHub Auth - Client ID:', clientId);
-
-  // If no client ID, show error
-  if (!clientId || clientId === 'your-client-id-here') {
-    return (
-      <div className="fixed top-6 right-6" style={{ zIndex: 9998 }}>
-        <div className="bg-red-100 text-red-700 px-4 py-2 rounded-md">
-          GitHub Client ID not configured
-        </div>
-      </div>
-    );
-  }
+  const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
 
   useEffect(() => {
     // Check for OAuth callback
@@ -79,6 +65,11 @@ const GitHubAuth: React.FC<GitHubAuthProps> = ({ onAuthSuccess, clientId }) => {
   };
 
   const initiateOAuth = () => {
+    if (!clientId) {
+      console.error("VITE_GITHUB_CLIENT_ID is not set. Check your .env file.");
+      alert("GitHub authentication is not configured. Please see the console for details.");
+      return;
+    }
     const redirectUri = encodeURIComponent(window.location.origin);
     const scope = encodeURIComponent('repo user:email');
     
