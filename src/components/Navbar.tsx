@@ -22,6 +22,14 @@ const Navbar: React.FC<NavbarProps> = ({ children }) => {
             <span className="text-lg font-normal text-gray-600 ml-1">Playbook</span>
           </div>
         </div>
+ 
+        {/* Center - Keyboard shortcut hint */}
+        <div className="text-sm text-gray-500 font-mono">
+          <kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-md">⌘</kbd>
+          <span className="mx-1">+</span>
+          <kbd className="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-md">Enter</kbd>
+          <span className="ml-2">to toggle comments</span>
+        </div>
 
         {/* Right side - Auth and other controls */}
         <div className="flex items-center space-x-4">

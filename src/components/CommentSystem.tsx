@@ -163,6 +163,21 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
     setIsCommentMode(false);
   }, [location.pathname]);
 
+  // Add keyboard shortcut for toggling comment mode
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+        event.preventDefault();
+        setIsCommentMode(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   // Filter comments for current page
   const pageComments = comments.filter(c => c.pageUrl === location.pathname);
 
@@ -183,7 +198,7 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
       x,
       y,
       text: '',
-      author: githubUser?.name || githubUser?.login || 'Anonymous User',
+      author: githubUser?.login || 'Local User',
       timestamp: new Date(),
       replies: [],
       pageUrl: location.pathname
@@ -202,9 +217,10 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
 
     // If the comment doesn't have text, it's a new comment. Create a GitHub issue.
     if (!commentToUpdate.text && text.trim() !== '') {
-      if (githubToken) {
+      if (githubToken && githubUser) {
         const repo = getGitHubRepo();
         if (repo) {
+          // Use the login for consistency
           const updatedComment = { ...commentToUpdate, text, author: githubUser.login };
           issueNumber = await createGitHubIssue(githubToken, repo, updatedComment, location.pathname);
         }
@@ -213,7 +229,7 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
     
     setComments(comments.map(c => 
       c.id === commentId 
-        ? { ...c, text, githubIssueNumber: issueNumber ?? c.githubIssueNumber } 
+        ? { ...c, text, author: githubUser?.login || c.author, githubIssueNumber: issueNumber ?? c.githubIssueNumber } 
         : c
     ));
   };
@@ -435,7 +451,12 @@ const CommentPin: React.FC<{
             {(comment.text || isEditing) && (
               <div className="p-4 border-b">
                 <div className="flex items-start justify-between mb-2">
-                  <span className="text-sm font-semibold text-gray-900">{comment.author}</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-semibold text-gray-900">{comment.author}</span>
+                    <span className="text-xs text-gray-500">
+                      {new Date(comment.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
                   {!isEditing && (
                     <button
                       onClick={() => onDelete(comment.id)}
@@ -468,9 +489,6 @@ const CommentPin: React.FC<{
                 ) : (
                   <>
                     <p className="text-sm text-gray-700 mb-2">{comment.text}</p>
-                    <span className="text-xs text-gray-500">
-                      {new Date(comment.timestamp).toLocaleString()}
-                    </span>
                   </>
                 )}
               </div>
@@ -478,14 +496,16 @@ const CommentPin: React.FC<{
 
             {/* Replies */}
             {comment.replies.map(reply => (
-              <div key={reply.id} className="p-4 border-b bg-gray-50">
-                <div className="flex items-start justify-between mb-2">
-                  <span className="text-sm font-semibold text-gray-900">{reply.author}</span>
+              <div key={reply.id} className="p-4 border-t bg-gray-50">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-semibold text-gray-900">{reply.author}</span>
+                    <span className="text-xs text-gray-500">
+                      {new Date(reply.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-700 mb-2">{reply.text}</p>
-                <span className="text-xs text-gray-500">
-                  {new Date(reply.timestamp).toLocaleString()}
-                </span>
+                <p className="text-sm text-gray-700">{reply.text}</p>
               </div>
             ))}
           </div>
