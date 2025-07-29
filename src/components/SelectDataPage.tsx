@@ -226,7 +226,7 @@ export default function SelectDataPage({ data, onUpdate }: Props) {
                       Table or View
                     </label>
                     <p className="mt-1 text-xs text-gray-500">
-                      Text data for search indexing
+                      Text columns for search indexing
                     </p>
                   </div>
                 </div>
@@ -258,7 +258,7 @@ export default function SelectDataPage({ data, onUpdate }: Props) {
                       Stage (PDF Files)
                     </label>
                     <p className="mt-1 text-xs text-gray-500">
-                      PDF files for document indexing
+                      Files for document indexing
                     </p>
                   </div>
                 </div>
