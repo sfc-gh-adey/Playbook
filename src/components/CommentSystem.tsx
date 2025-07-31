@@ -235,7 +235,7 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
         fullComments.push({
           ...marker,
           text: '',
-          author: githubUser?.login || 'Anonymous',
+          author: githubUser?.name || githubUser?.login || 'Anonymous',
           timestamp: new Date(),
           replies: []
         });
@@ -286,7 +286,7 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
       x,
       y,
       text: '',
-      author: githubUser?.login || 'Local User', // Use login for consistency
+      author: githubUser?.name || githubUser?.login || 'Local User',
       timestamp: new Date(),
       replies: [],
       pageUrl: location.pathname,
@@ -309,8 +309,8 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
       if (githubToken && githubUser) {
         const repo = getGitHubRepo();
         if (repo) {
-          // Use the login for consistency
-          const updatedComment = { ...commentToUpdate, text, author: githubUser.login };
+          // Use the name (with login fallback) for consistency
+          const updatedComment = { ...commentToUpdate, text, author: githubUser.name || githubUser.login };
           issueNumber = await createGitHubIssue(githubToken, repo, updatedComment, location.pathname);
         }
       }
@@ -318,7 +318,7 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
     
     setComments(comments.map(c => 
       c.id === commentId 
-        ? { ...c, text, author: githubUser?.login || c.author, githubIssueNumber: issueNumber ?? c.githubIssueNumber } 
+        ? { ...c, text, author: githubUser?.name || githubUser?.login || c.author, githubIssueNumber: issueNumber ?? c.githubIssueNumber } 
         : c
     ));
   };
@@ -330,7 +330,7 @@ const CommentSystem: React.FC<CommentSystemProps> = ({ githubUser, githubToken }
     const newReply: Reply = {
       id: Date.now().toString(),
       text: replyText,
-      author: githubUser?.login || 'Anonymous',
+      author: githubUser?.name || githubUser?.login || 'Anonymous',
       timestamp: new Date()
     };
     
@@ -456,6 +456,35 @@ const CommentPin: React.FC<{
   const [isEditing, setIsEditing] = useState(!comment.text);
   const [editText, setEditText] = useState(comment.text || '');
   const [isResolving, setIsResolving] = useState(false);
+  const threadRef = useRef<HTMLDivElement>(null);
+
+  // Handle click outside to cancel empty comments
+  useEffect(() => {
+    if (!isActive || !isEditing || comment.text) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (threadRef.current && !threadRef.current.contains(event.target as Node)) {
+        // If the comment is empty and user clicks outside, delete it
+        if (!editText.trim()) {
+          onDelete(comment.id);
+        } else {
+          // If there's text, save it
+          onUpdate(comment.id, editText.trim());
+          setIsEditing(false);
+        }
+      }
+    };
+
+    // Add delay to prevent immediate trigger when comment is created
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+      }, [isActive, isEditing, comment.text, editText, comment.id, onDelete, onUpdate]);
 
   const handleSendComment = () => {
     if (editText.trim()) {
@@ -535,6 +564,7 @@ const CommentPin: React.FC<{
       {/* Comment Thread - Modern card design */}
       {isActive && (
         <div
+          ref={threadRef}
           className="fixed bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden"
           style={{ 
             left: Math.min(comment.x + 20, window.innerWidth - 380),
@@ -590,8 +620,16 @@ const CommentPin: React.FC<{
                 </button>
               )}
               <button
-                onClick={onClose}
+                onClick={() => {
+                  // If comment is empty and being edited, delete it instead of just closing
+                  if (!comment.text && isEditing && !editText.trim()) {
+                    onDelete(comment.id);
+                  } else {
+                    onClose();
+                  }
+                }}
                 className="text-gray-500 hover:text-gray-700 transition-colors p-1.5 hover:bg-gray-200 rounded-lg"
+                title={!comment.text && isEditing && !editText.trim() ? "Cancel comment" : "Close"}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
