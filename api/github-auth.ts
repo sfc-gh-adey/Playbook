@@ -1,12 +1,26 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const { code } = req.body;
-  
+
   if (!code) {
     return res.status(400).json({ error: 'Code is required' });
   }
@@ -20,16 +34,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         'Accept': 'application/json',
       },
       body: JSON.stringify({
-        client_id: process.env.GITHUB_CLIENT_ID,
+        client_id: process.env.VITE_GITHUB_CLIENT_ID,
         client_secret: process.env.GITHUB_CLIENT_SECRET,
         code,
       }),
     });
 
     const tokenData = await tokenResponse.json();
-    
+
     if (tokenData.error) {
-      return res.status(400).json({ error: tokenData.error_description });
+      return res.status(400).json({ error: tokenData.error_description || tokenData.error });
     }
 
     // Get user info
@@ -40,19 +54,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
     });
 
-    const user = await userResponse.json();
+    const userData = await userResponse.json();
 
     return res.status(200).json({
       access_token: tokenData.access_token,
-      user: {
-        login: user.login,
-        name: user.name,
-        avatar_url: user.avatar_url,
-        email: user.email,
-      },
+      user: userData,
     });
   } catch (error) {
     console.error('GitHub auth error:', error);
-    return res.status(500).json({ error: 'Authentication failed' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 } 
