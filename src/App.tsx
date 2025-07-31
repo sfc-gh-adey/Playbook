@@ -16,6 +16,8 @@ import TranscriptViewerPage from './components/TranscriptViewerPage.tsx'; // Imp
 import './App.css';
 
 
+console.log('App.tsx loaded - Latest version with TranscriptViewerPage');
+
 export interface WizardData {
   // Step 1: New service
   serviceName: string;
