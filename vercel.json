@@ -7,13 +7,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "env": {
-    "VITE_GITHUB_CLIENT_ID": "@vite_github_client_id"
-  },
-  "build": {
-    "env": {
-      "VITE_GITHUB_CLIENT_ID": "@vite_github_client_id"
-    }
-  }
+  ]
 } 
