@@ -93,7 +93,6 @@ export default function SelectDataPage({ data, onUpdate }: Props) {
   const [selectedStage, setSelectedStage] = useState('');
   const [currentPath, setCurrentPath] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
-  const [enableIncrementalUpdates, setEnableIncrementalUpdates] = useState(false);
   const [showFileBrowser, setShowFileBrowser] = useState(false);
 
   const handleDatabaseChange = (database: string) => {
@@ -146,8 +145,7 @@ export default function SelectDataPage({ data, onUpdate }: Props) {
     
     // Update wizard data
     onUpdate({ 
-      selectedFiles: Array.from(newSelected),
-      enableIncrementalUpdates 
+      selectedFiles: Array.from(newSelected)
     });
   };
 
@@ -226,7 +224,7 @@ export default function SelectDataPage({ data, onUpdate }: Props) {
                       Table or View
                     </label>
                     <p className="mt-1 text-xs text-gray-500">
-                      Text columns for search indexing
+                      Text columns
                     </p>
                   </div>
                 </div>
@@ -255,10 +253,10 @@ export default function SelectDataPage({ data, onUpdate }: Props) {
                   </div>
                   <div className="ml-3">
                     <label htmlFor="stage-source" className="block text-sm font-medium text-gray-900 cursor-pointer">
-                      Stage (PDF Files)
+                      Files
                     </label>
                     <p className="mt-1 text-xs text-gray-500">
-                      Files for document indexing
+                      PDF files in a stage
                     </p>
                   </div>
                 </div>
@@ -433,42 +431,6 @@ export default function SelectDataPage({ data, onUpdate }: Props) {
                           </div>
                         </div>
                       ))}
-                    </div>
-                  </div>
-
-                  {/* Incremental Updates Option */}
-                  <div className="p-3 border-t border-gray-200 bg-gray-50">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="incremental-updates"
-                        checked={enableIncrementalUpdates}
-                        onChange={(e) => setEnableIncrementalUpdates(e.target.checked)}
-                        disabled={!hasSelectedFolders}
-                        className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded disabled:opacity-50"
-                      />
-                      <label 
-                        htmlFor="incremental-updates" 
-                        className={`text-xs font-medium ${hasSelectedFolders ? 'text-gray-900' : 'text-gray-400'}`}
-                      >
-                        Enable incremental updates for selected folders
-                      </label>
-                      <div className="relative group">
-                        <svg 
-                          className={`w-3 h-3 ${hasSelectedFolders ? 'text-gray-400' : 'text-gray-300'}`} 
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-                          {hasSelectedFolders 
-                            ? 'Automatically index new files added to selected folders'
-                            : 'Only available when folders are selected'
-                          }
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>

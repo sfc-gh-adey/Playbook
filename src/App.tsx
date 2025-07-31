@@ -12,6 +12,7 @@ import PlaygroundPage from './components/PlaygroundPage.tsx';
 import CommentSystem from './components/CommentSystem.tsx';
 import GitHubAuth from './components/GitHubAuth.tsx';
 import Navbar from './components/Navbar.tsx';
+import TranscriptViewerPage from './components/TranscriptViewerPage.tsx'; // Import the new component
 import './App.css';
 
 
@@ -65,7 +66,7 @@ const initialWizardData: WizardData = {
   stagePath: '',
   selectedTable: '',
   selectedFiles: [],
-  enableIncrementalUpdates: false,
+  enableIncrementalUpdates: true,
   searchColumns: [],
   attributeColumns: [],
   returnColumns: [],
@@ -110,6 +111,7 @@ function App() {
           <Route path="/" element={<Wizard />} />
           <Route path="/service/:serviceName" element={<ServiceLandingPage />} />
           <Route path="/service/:serviceName/playground" element={<PlaygroundPage />} />
+          <Route path="/transcript" element={<TranscriptViewerPage />} /> {/* Add the new route */}
         </Routes>
       </div>
       <CommentSystem 
@@ -171,7 +173,7 @@ function Wizard() {
         return wizardData.dataSourceType === 'table' ? !!wizardData.selectedTable : wizardData.selectedFiles.length > 0;
       case 3:
         if (wizardData.dataSourceType === 'stage') {
-          return !!(wizardData.pipelineType && wizardData.generatedTableDatabase && wizardData.generatedTableSchema);
+          return !!wizardData.pipelineType;
         }
         return wizardData.searchColumns.length > 0;
       case 4:
